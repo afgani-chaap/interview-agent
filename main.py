@@ -2,6 +2,8 @@ import logging
 from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+import os
 from pydantic import BaseModel
 
 import config
@@ -52,12 +54,18 @@ class InterviewResponse(BaseModel):
 
 @app.get("/")
 def read_root():
+    if os.path.exists("index.html"):
+        return FileResponse("index.html")
     return {
         "status": "online",
         "api_docs": "/docs",
         "model_configured": config.MODEL_NAME,
         "breeth_enabled": breeth_client.enabled
     }
+
+@app.get("/api/candidates")
+def get_candidates():
+    return llm_client.CANDIDATES
 
 @app.post("/api/interview", response_model=InterviewResponse)
 def handle_interview_turn(request: InterviewRequest):
