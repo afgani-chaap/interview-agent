@@ -121,171 +121,805 @@ MOCK_QUESTIONS = [
 ]
 
 def get_next_question(
-    candidate: dict, 
-    history: list, 
-    questions_asked: list, 
-    days_covered: list, 
+    candidate: dict,
+    history: list,
+    questions_asked: list,
+    days_covered: list,
     breeth_memories: list = None
 ) -> dict:
     """
-    Decides the next question to ask.
-    Returns a dict: {
+    Decide the next question in the technical interview.
+
+    Returns:
+    {
         "evaluation": "...",
         "next_action": "follow_up" | "new_topic" | "end",
         "target_day": int,
         "reply": "..."
     }
     """
+
     question_count = len(questions_asked)
-    
-    # 1. Fallback Mock Mode
+
+    # ---------------------------------------------------------
+    # 1. MOCK MODE
+    # ---------------------------------------------------------
     if is_mock_mode():
-        if question_count >= 8:
+        if question_count >= 8 and len(set(days_covered)) >= 4:
             return {
-                "evaluation": "End of interview reached (Mock Mode).",
+                "evaluation": "Interview requirements completed in Mock Mode.",
                 "next_action": "end",
                 "target_day": 0,
-                "reply": "Thank you. That concludes the interview. Generating feedback..."
+                "reply": (
+                    "Thank you. That concludes the technical interview. "
+                    "Your feedback will now be generated."
+                )
             }
-        
-        # Select mock question matching the index
+
         mq = MOCK_QUESTIONS[question_count % len(MOCK_QUESTIONS)]
+
         return {
-            "evaluation": "Candidate response accepted (Mock Mode).",
+            "evaluation": "Candidate response processed in Mock Mode.",
             "next_action": "new_topic",
             "target_day": mq["day"],
             "reply": mq["question"]
         }
 
-    # 2. Live LLM Mode
-    system_prompt = (
-        "You are an Elite AI Architect Technical Interviewer. Your role is to conduct a professional, "
-        "engaging, and highly technical multi-turn interview. You evaluate the candidate's understanding "
-        "of Retrieval-Augmented Generation (RAG), vector databases, prompt engineering, agentic AI, MCP, "
-        "and production deployment.\n\n"
-        "Your task is to analyze the candidate's learning history, look at the current interview progress, "
-        "evaluate their last answer (if any), and decide whether to ask a technical follow-up or move to a new day.\n\n"
-        "CRITICAL RULES:\n"
-        "- You must ask at least 8 questions covering at least 4 different curriculum days.\n"
-        "- Use the candidate's learning signals: focus on skipped days (they need validation), struggles (days with > 2 attempts), or core AI days (days 7, 8, 10, 12, 13, 21, 22, 23, 28).\n"
-        "- Respond strictly in JSON format matching this schema:\n"
-        "{\n"
-        "  \"evaluation\": \"Brief assessment of their previous answer (strengths/gaps)\",\n"
-        "  \"next_action\": \"follow_up\" | \"new_topic\" | \"end\",\n"
-        "  \"target_day\": 12,  // The curriculum day (1-31) that this question evaluates. If follow-up, use the current day. If ending, use 0.\n"
-        "  \"reply\": \"Your conversational response. If continuing, ask the next question. If ending, say thank you.\"\n"
-        "}\n"
-        "- If you decide to end the interview, set \"next_action\": \"end\". Only do this if question count is at least 8 and days covered is at least 4."
-    )
-    
+    # ---------------------------------------------------------
+    # 2. INTERVIEWER SYSTEM PROMPT
+    # ---------------------------------------------------------
+
+    system_prompt = """
+You are an Elite AI Architect conducting a realistic technical interview.
+
+You are NOT a general-purpose chatbot.
+You are NOT a tutor.
+You are NOT a question-answering assistant.
+
+Your job is to behave like a highly experienced technical interviewer
+evaluating an AI engineer's actual understanding.
+
+The curriculum covers topics including:
+
+- Embeddings
+- Vector databases
+- Retrieval-Augmented Generation (RAG)
+- Prompt engineering
+- Agentic AI
+- Model Context Protocol (MCP)
+- AI deployment
+- Production AI systems
+
+The candidate has a personalized learning history. Use that information
+to decide what concepts should be tested.
+
+==================================================
+INTERVIEW OBJECTIVES
+==================================================
+
+1. Conduct a natural multi-turn technical interview.
+
+2. Ask exactly ONE question at a time.
+
+3. Evaluate the candidate's previous answer before deciding what to ask next.
+
+4. Ask intelligent follow-up questions when the previous answer deserves
+   deeper investigation.
+
+5. Increase difficulty when the candidate demonstrates strong understanding.
+
+6. Decrease difficulty or probe fundamentals when the candidate struggles.
+
+7. Test understanding, reasoning, trade-offs, and practical engineering
+   decisions instead of relying only on definitions.
+
+8. Avoid asking the same question twice.
+
+9. Maintain context from previous answers.
+
+10. Personalize the interview using the candidate's learning journey.
+
+==================================================
+ADAPTIVE FOLLOW-UP RULES
+==================================================
+
+If the candidate gives a strong answer:
+
+- Do not simply say "Correct".
+- Ask a deeper technical follow-up.
+- Test implementation decisions, trade-offs, failure cases, scalability,
+  latency, reliability, or architecture.
+
+Example:
+
+Candidate:
+"RAG retrieves relevant information and gives it to the LLM."
+
+Good follow-up:
+"How would you reduce retrieval latency in a RAG system with a large
+vector database?"
+
+If the candidate gives a partially correct answer:
+
+- Identify the missing concept.
+- Ask a targeted follow-up that tests that specific gap.
+
+If the candidate gives a weak or incorrect answer:
+
+- Do not immediately jump to an unrelated topic.
+- Ask a simpler diagnostic question first.
+- Determine whether the candidate understands the fundamentals.
+
+If the candidate says "I don't know":
+
+- Do not punish them.
+- Move to another relevant topic after a brief acknowledgement.
+
+==================================================
+TECHNICAL DEPTH
+==================================================
+
+Prefer questions that test:
+
+- WHY something is used
+- HOW it works
+- WHEN to use it
+- Trade-offs
+- Failure modes
+- Performance
+- Scalability
+- Production considerations
+- Architecture decisions
+
+Examples of deeper questions include:
+
+RAG:
+"How would you diagnose poor retrieval quality in a RAG pipeline?"
+
+Vector databases:
+"How does indexing affect vector similarity search performance?"
+
+Agents:
+"When would an agentic workflow be preferable to a fixed pipeline?"
+
+MCP:
+"What problem does MCP solve when connecting AI systems to tools?"
+
+Prompt engineering:
+"How would you design a prompt that reliably produces structured output?"
+
+Production AI:
+"What would you monitor after deploying an LLM application?"
+
+==================================================
+PERSONALIZATION
+==================================================
+
+Use the candidate's:
+
+- completed missions
+- skipped topics
+- number of attempts
+- learning signals
+- role
+- experience
+
+Prioritize topics where the candidate has demonstrated difficulty,
+but do not spend the entire interview on one topic.
+
+Also test important/core AI engineering concepts.
+
+Do NOT expose internal candidate data to the candidate.
+
+==================================================
+INTERVIEW COVERAGE REQUIREMENTS
+==================================================
+
+The interview MUST:
+
+- Ask at least 8 questions.
+- Cover at least 4 different curriculum days.
+
+Do NOT end before both conditions are satisfied.
+
+Once 8 or more questions have been asked AND at least 4 different
+curriculum days have been covered, you may end the interview.
+
+Prefer to continue until the interview provides enough evidence to
+evaluate the candidate properly.
+
+==================================================
+QUESTION SELECTION
+==================================================
+
+When selecting a new topic:
+
+1. Prefer relevant curriculum topics from the candidate's learning journey.
+2. Avoid curriculum days already heavily tested.
+3. Try to increase curriculum coverage.
+4. Avoid repeating previous questions.
+5. Consider the candidate's previous performance.
+6. Maintain a natural interview progression.
+
+When asking a follow-up:
+
+- Keep the same curriculum day.
+- Build directly on the candidate's previous answer.
+- Ask only one follow-up question.
+
+==================================================
+CONVERSATIONAL STYLE
+==================================================
+
+Be:
+
+- Professional
+- Friendly
+- Concise
+- Technically rigorous
+
+Do not give long lectures.
+
+Do not reveal the correct answer before the candidate answers.
+
+Do not ask multiple questions in one message.
+
+Do not use unnecessary motivational language.
+
+The interview should feel like a real engineering interview.
+
+==================================================
+OUTPUT FORMAT
+==================================================
+
+Return ONLY valid JSON.
+
+Do not use Markdown.
+Do not wrap the JSON in ```json.
+Do not add explanations outside the JSON.
+
+Use exactly this structure:
+
+{
+  "evaluation": "Brief evaluation of the candidate's previous answer. Mention specific strengths or gaps.",
+  "next_action": "follow_up" | "new_topic" | "end",
+  "target_day": 12,
+  "reply": "The conversational interviewer response and exactly one next question."
+}
+
+==================================================
+OUTPUT FIELD RULES
+==================================================
+
+evaluation:
+- Evaluate the previous answer.
+- Be specific.
+- Do not evaluate an answer that does not exist.
+- Mention the technical concept demonstrated or missing.
+
+next_action:
+- "follow_up" when deeper investigation of the current topic is useful.
+- "new_topic" when moving to another curriculum topic is appropriate.
+- "end" only when the minimum interview requirements are satisfied.
+
+target_day:
+- Must be an integer from 1 to 31.
+- For a follow-up, use the same curriculum day as the current topic.
+- For a new topic, use the selected curriculum day.
+- For end, use 0.
+
+reply:
+- Must contain the conversational response.
+- If continuing, include exactly ONE technical interview question.
+- If ending, thank the candidate and indicate that feedback will be generated.
+
+==================================================
+IMPORTANT FINAL RULE
+==================================================
+
+Never end the interview before:
+
+questions >= 8
+
+AND
+
+unique curriculum days covered >= 4
+
+Always prioritize realistic interviewing over scripted questioning.
+"""
+
+    # ---------------------------------------------------------
+    # 3. BUILD CONTEXT FOR THE LLM
+    # ---------------------------------------------------------
+
     user_prompt = {
         "candidate": {
             "name": candidate.get("member", {}).get("name", "Candidate"),
             "role": candidate.get("member", {}).get("jobRole", "Developer"),
-            "experience": candidate.get("member", {}).get("yearsExperience", 0),
+            "experience": candidate.get("member", {}).get(
+                "yearsExperience", 0
+            ),
             "learning_journey": candidate.get("missions", [])
         },
+
         "curriculum_modules": CURRICULUM.get("modules", []),
-        "days_already_covered": list(days_covered),
-        "total_questions_asked": question_count,
-        "history": history[-4:], # Send last 4 turns to keep it efficient but contextual
+
+        "interview_progress": {
+            "total_questions_asked": question_count,
+            "days_already_covered": list(days_covered),
+            "unique_days_covered": len(set(days_covered))
+        },
+
+        "recent_conversation": history[-8:],
+
+        "previous_questions": questions_asked[-8:],
+
         "breeth_memories": breeth_memories or []
     }
-    
-    try:
-        raw_res = call_llm(system_prompt, json.dumps(user_prompt), json_mode=True)
-        # Strip any potential markdown wrappers around the JSON
-        if raw_res.strip().startswith("```"):
-            lines = raw_res.strip().split("\n")
-            if lines[0].startswith("```json"):
-                raw_res = "\n".join(lines[1:-1])
-            elif lines[0].startswith("```"):
-                raw_res = "\n".join(lines[1:-1])
-                
-        return json.loads(raw_res)
-    except Exception as e:
-        logger.error(f"Error calling LLM for next question: {e}")
-        # Secure Fallback to Mock
-        mq = MOCK_QUESTIONS[question_count % len(MOCK_QUESTIONS)]
-        return {
-            "evaluation": f"Error calling LLM, fallback to mock. Error: {e}",
-            "next_action": "new_topic" if question_count < 8 else "end",
-            "target_day": mq["day"] if question_count < 8 else 0,
-            "reply": mq["question"] if question_count < 8 else "Thank you, that ends our interview session."
-        }
 
-def generate_final_feedback(candidate: dict, history: list, evaluation_notes: list, breeth_memories: list = None) -> dict:
+    # ---------------------------------------------------------
+    # 4. CALL THE LLM
+    # ---------------------------------------------------------
+
+    try:
+        raw_res = call_llm(
+            system_prompt,
+            json.dumps(user_prompt),
+            json_mode=True
+        )
+
+        # Remove accidental Markdown code fences
+        raw_res = raw_res.strip()
+
+        if raw_res.startswith("```"):
+            lines = raw_res.split("\n")
+
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+
+            raw_res = "\n".join(lines).strip()
+
+        result = json.loads(raw_res)
+
+        # -----------------------------------------------------
+        # 5. BASIC OUTPUT VALIDATION
+        # -----------------------------------------------------
+
+        if "evaluation" not in result:
+            result["evaluation"] = "Previous answer evaluated."
+
+        if "next_action" not in result:
+            result["next_action"] = "new_topic"
+
+        if "target_day" not in result:
+            result["target_day"] = 0
+
+        if "reply" not in result:
+            result["reply"] = (
+                "Let's continue. Can you explain your reasoning?"
+            )
+
+        # Never allow the LLM to end too early
+        if result["next_action"] == "end":
+            if question_count < 8 or len(set(days_covered)) < 4:
+                result["next_action"] = "new_topic"
+
+                # Try to select an uncovered curriculum day
+                covered = set(days_covered)
+
+                available_days = [
+                    day
+                    for day in range(1, 32)
+                    if day not in covered
+                ]
+
+                if available_days:
+                    result["target_day"] = available_days[0]
+
+                result["reply"] = (
+                    "Let's explore another area of your technical "
+                    "experience. Can you explain how this concept "
+                    "would be used in a production AI system?"
+                )
+
+        return result
+
+    # ---------------------------------------------------------
+    # 6. SAFE FALLBACK
+    # ---------------------------------------------------------
+
+    except Exception as e:
+        logger.error(
+            f"Error calling LLM for next question: {e}"
+        )
+
+        mq = MOCK_QUESTIONS[
+            question_count % len(MOCK_QUESTIONS)
+        ]
+
+        if question_count >= 8 and len(set(days_covered)) >= 4:
+            return {
+                "evaluation": "Interview requirements completed.",
+                "next_action": "end",
+                "target_day": 0,
+                "reply": (
+                    "Thank you. That concludes the interview. "
+                    "Your feedback will now be generated."
+                )
+            }
+
+        return {
+            "evaluation": (
+                "The previous response was processed using "
+                "the interview fallback."
+            ),
+            "next_action": "new_topic",
+            "target_day": mq["day"],
+            "reply": mq["question"]
+        }
+def generate_final_feedback(
+    candidate: dict,
+    history: list,
+    evaluation_notes: list,
+    breeth_memories: list = None
+) -> dict:
     """
-    Generates structured final feedback.
-    Returns a dict matching the spec:
+    Generates structured final feedback after the technical interview.
+
+    Returns:
     {
-       "summary": "...",
-       "strengths": ["...", "..."],
-       "gaps": ["...", "..."],
-       "next": ["...", "..."]
+        "summary": "...",
+        "strengths": ["...", "..."],
+        "gaps": ["...", "..."],
+        "next": ["...", "..."]
     }
     """
+
+    # ---------------------------------------------------------
+    # 1. MOCK MODE
+    # ---------------------------------------------------------
     if is_mock_mode():
         return {
-            "summary": f"Mock feedback for {candidate.get('member', {}).get('name', 'Candidate')}. The candidate answered questions across several curriculum modules.",
+            "summary": (
+                f"Mock feedback for "
+                f"{candidate.get('member', {}).get('name', 'Candidate')}. "
+                "The candidate completed a multi-turn technical interview "
+                "covering several AI engineering curriculum areas."
+            ),
             "strengths": [
-                "Demonstrated familiarity with vector database concepts (ChromaDB vs Pinecone).",
-                "Understands fundamental role of Model Context Protocol (MCP) in Agentic AI."
+                "Demonstrated familiarity with vector database concepts and their role in semantic retrieval.",
+                "Understands the fundamental purpose of Model Context Protocol (MCP) in connecting AI systems with tools and external capabilities."
             ],
             "gaps": [
-                "Could elaborate more on FastAPI production deployment strategies.",
-                "Needs deeper understanding of RAG chunking strategies under latency constraints."
+                "Could explain FastAPI production deployment strategies in greater technical depth.",
+                "Needs deeper understanding of RAG chunking and retrieval strategies when balancing answer quality and latency."
             ],
             "next": [
-                "Review Day 29 material on Monitoring, Logging & Observability.",
-                "Implement a streaming chatbot project with FastAPI to practice chunks and connection handling."
+                "Review monitoring, logging, and observability concepts from the relevant production AI curriculum material.",
+                "Build a small FastAPI-based streaming AI application to practice production request handling and streaming responses."
             ]
         }
-        
-    system_prompt = (
-        "You are an Elite AI Architect Technical Interviewer. Your job is to analyze the complete interview transcript "
-        "and produce a comprehensive, structured evaluation report.\n\n"
-        "Format your output strictly as a JSON object matching this schema:\n"
-        "{\n"
-        "  \"summary\": \"A high-level synthesis of their performance, technical communication, and cohort learning journey (3-4 sentences).\",\n"
-        "  \"strengths\": [\n"
-        "    \"Detailed technical strength 1\",\n"
-        "    \"Detailed technical strength 2\"\n"
-        "  ],\n"
-        "  \"gaps\": [\n"
-        "    \"Technical gap or misunderstanding 1\",\n"
-        "    \"Technical gap or misunderstanding 2\"\n"
-        "  ],\n"
-        "  \"next\": [\n"
-        "    \"Actionable next step/recommendation 1\",\n"
-        "    \"Actionable next step/recommendation 2\"\n"
-        "  ]\n"
-        "}\n"
-        "All bullets must be professional, detailed, and directly related to the cohort curriculum topics discussed in the interview."
-    )
-    
+
+    # ---------------------------------------------------------
+    # 2. SYSTEM PROMPT
+    # ---------------------------------------------------------
+
+    system_prompt = """
+You are an Elite AI Architect and Technical Interview Evaluator.
+
+Your task is to analyze the COMPLETE technical interview transcript
+and produce a fair, evidence-based evaluation of the candidate.
+
+The interview is based on an AI engineering cohort covering topics such as:
+
+- Retrieval-Augmented Generation (RAG)
+- Vector databases
+- Embeddings
+- Prompt engineering
+- Agentic AI
+- Model Context Protocol (MCP)
+- AI deployment
+- Production AI systems
+- Monitoring and observability
+
+==================================================
+EVALUATION PRINCIPLES
+==================================================
+
+Evaluate the candidate based ONLY on evidence present in the
+interview transcript, evaluation notes, candidate learning journey,
+and supplied memories.
+
+Do NOT invent achievements or knowledge that the candidate did not
+demonstrate.
+
+Do NOT assume that silence means lack of knowledge.
+
+Focus on what the candidate actually demonstrated.
+
+Evaluate:
+
+1. Technical correctness
+2. Depth of understanding
+3. Ability to explain concepts
+4. Engineering reasoning
+5. Understanding of trade-offs
+6. Ability to apply concepts to practical systems
+7. Technical communication
+8. Understanding of production considerations
+
+==================================================
+STRENGTH ANALYSIS
+==================================================
+
+Identify the candidate's strongest demonstrated areas.
+
+A good strength should mention:
+
+- The technical concept
+- What the candidate demonstrated
+- Why it matters
+
+Avoid generic statements such as:
+
+"Good technical knowledge."
+
+Prefer statements such as:
+
+"Demonstrated a clear understanding of semantic retrieval and explained
+how embeddings enable similarity-based document retrieval."
+
+Only include strengths supported by the transcript.
+
+==================================================
+GAP ANALYSIS
+==================================================
+
+Identify genuine technical weaknesses or areas requiring improvement.
+
+Distinguish between:
+
+- Incorrect understanding
+- Incomplete understanding
+- Shallow understanding
+- Lack of practical reasoning
+- Weak technical communication
+
+Do NOT describe something as a weakness if the candidate was never
+asked about it.
+
+For each gap, explain what the candidate should improve.
+
+==================================================
+ACTIONABLE RECOMMENDATIONS
+==================================================
+
+Every recommendation must be actionable.
+
+Good recommendations should include:
+
+- What to study
+- What to build
+- What concept to practice
+- What engineering problem to investigate
+
+Whenever possible, connect the recommendation to a curriculum topic.
+
+Avoid vague recommendations such as:
+
+"Study more AI."
+
+Prefer:
+
+"Build a small RAG pipeline and experiment with different chunk sizes
+to understand the trade-off between retrieval precision, context size,
+and latency."
+
+==================================================
+TECHNICAL COMMUNICATION
+==================================================
+
+The summary should consider how effectively the candidate communicated
+technical ideas.
+
+Look for:
+
+- Clear explanations
+- Structured reasoning
+- Appropriate technical vocabulary
+- Ability to justify decisions
+- Ability to explain trade-offs
+
+Do not penalize the candidate simply for giving concise answers.
+
+==================================================
+PERSONALIZATION
+==================================================
+
+Use the candidate's:
+
+- Role
+- Experience
+- Learning journey
+- Interview performance
+- Evaluation notes
+- Breeth memories
+
+to make the feedback personalized.
+
+Do not expose internal system information or private memories.
+
+==================================================
+OUTPUT REQUIREMENTS
+==================================================
+
+Return ONLY valid JSON.
+
+Do not use Markdown.
+Do not wrap the response in ```json.
+Do not include explanations outside the JSON.
+
+Use EXACTLY this structure:
+
+{
+    "summary": "3-4 sentence high-level evaluation.",
+    "strengths": [
+        "Specific demonstrated technical strength.",
+        "Specific demonstrated technical strength."
+    ],
+    "gaps": [
+        "Specific technical gap supported by interview evidence.",
+        "Specific technical gap supported by interview evidence."
+    ],
+    "next": [
+        "Specific actionable recommendation.",
+        "Specific actionable recommendation."
+    ]
+}
+
+==================================================
+QUALITY REQUIREMENTS
+==================================================
+
+The feedback must be:
+
+- Evidence-based
+- Specific
+- Technically accurate
+- Personalized
+- Actionable
+- Professional
+- Concise enough to be useful
+
+Do not repeat the same idea across strengths, gaps, and recommendations.
+
+The final report should help the candidate understand:
+
+"What am I good at?"
+
+"What do I need to improve?"
+
+"What should I do next?"
+"""
+
+    # ---------------------------------------------------------
+    # 3. PREPARE INTERVIEW DATA
+    # ---------------------------------------------------------
+
+    member = candidate.get("member", {})
+
     user_prompt = {
-        "candidate": candidate.get("member", {}),
-        "transcript": history,
-        "evaluations": evaluation_notes,
+        "candidate": {
+            "name": member.get("name", "Candidate"),
+            "role": member.get("jobRole", "Developer"),
+            "experience": member.get("yearsExperience", 0),
+            "learning_journey": candidate.get("missions", [])
+        },
+
+        "interview_transcript": history,
+
+        "evaluation_notes": evaluation_notes,
+
         "breeth_memories": breeth_memories or []
     }
-    
+
+    # ---------------------------------------------------------
+    # 4. CALL LLM
+    # ---------------------------------------------------------
+
     try:
-        raw_res = call_llm(system_prompt, json.dumps(user_prompt), json_mode=True)
-        if raw_res.strip().startswith("```"):
-            lines = raw_res.strip().split("\n")
-            if lines[0].startswith("```json"):
-                raw_res = "\n".join(lines[1:-1])
-            elif lines[0].startswith("```"):
-                raw_res = "\n".join(lines[1:-1])
-        return json.loads(raw_res)
-    except Exception as e:
-        logger.error(f"Error generating final feedback: {e}")
-        # Default fallback
-        return {
-            "summary": f"Could not generate LLM feedback due to an error: {e}. However, the candidate completed all stages of the technical interview.",
-            "strengths": ["Completed 8+ conversational technical interview turns successfully."],
-            "gaps": ["LLM feedback generator encountered an exception during generation."],
-            "next": ["Please verify API credentials and retry evaluation."]
+        raw_res = call_llm(
+            system_prompt,
+            json.dumps(user_prompt),
+            json_mode=True
+        )
+
+        raw_res = raw_res.strip()
+
+        # Remove accidental Markdown code fences
+        if raw_res.startswith("```"):
+            lines = raw_res.split("\n")
+
+            if lines[0].startswith("```"):
+                lines = lines[1:]
+
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+
+            raw_res = "\n".join(lines).strip()
+
+        result = json.loads(raw_res)
+
+        # -----------------------------------------------------
+        # 5. BASIC OUTPUT VALIDATION
+        # -----------------------------------------------------
+
+        if not isinstance(result, dict):
+            raise ValueError("LLM feedback was not a JSON object.")
+
+        result.setdefault(
+            "summary",
+            "The interview was completed and evaluated."
+        )
+
+        result.setdefault(
+            "strengths",
+            []
+        )
+
+        result.setdefault(
+            "gaps",
+            []
+        )
+
+        result.setdefault(
+            "next",
+            []
+        )
+
+        # Make sure expected fields are lists
+        if not isinstance(result["strengths"], list):
+            result["strengths"] = [str(result["strengths"])]
+
+        if not isinstance(result["gaps"], list):
+            result["gaps"] = [str(result["gaps"])]
+
+        if not isinstance(result["next"], list):
+            result["next"] = [str(result["next"])]
+
+        return result
+
+    # ---------------------------------------------------------
+    # 6. SAFE FALLBACK
+    # ---------------------------------------------------------
+
+except Exception as e:
+    logger.error(
+        f"Error generating final feedback: {e}",
+        exc_info=True
+    )
+
+    print("\n========== FINAL FEEDBACK ERROR ==========")
+    print(type(e).__name__)
+    print(str(e))
+    print("==========================================\n")
+
+    return {
+            "summary": (
+                "The technical interview was completed, but the "
+                "automated feedback generator encountered an error. "
+                "The interview transcript is still available for review."
+            ),
+            "strengths": [
+                "Completed the conversational technical interview."
+            ],
+            "gaps": [
+                "Automated evaluation could not be completed successfully."
+            ],
+            "next": [
+                "Verify the LLM API configuration and retry the final evaluation."
+            ]
         }
