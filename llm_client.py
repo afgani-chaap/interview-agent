@@ -896,18 +896,18 @@ The final report should help the candidate understand:
     # 6. SAFE FALLBACK
     # ---------------------------------------------------------
 
-except Exception as e:
-    logger.error(
-        f"Error generating final feedback: {e}",
-        exc_info=True
-    )
+    except Exception as e:
+        logger.error(
+            f"Error generating final feedback: {e}",
+            exc_info=True
+        )
 
-    print("\n========== FINAL FEEDBACK ERROR ==========")
-    print(type(e).__name__)
-    print(str(e))
-    print("==========================================\n")
+        print("\n========== FINAL FEEDBACK ERROR ==========")
+        print(type(e).__name__)
+        print(str(e))
+        print("==========================================\n")
 
-    return {
+        return {
             "summary": (
                 "The technical interview was completed, but the "
                 "automated feedback generator encountered an error. "
