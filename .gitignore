@@ -1,0 +1,12 @@
+# Virtual Environment
+.venv/
+__pycache__/
+*.pyc
+
+# Local Credentials and Logs
+.env
+*.log
+
+# Editor Settings
+.vscode/
+.idea/
