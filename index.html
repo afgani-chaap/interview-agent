@@ -337,7 +337,7 @@
 
     /* Feedback Overlay screen */
     .feedback-overlay {
-      display: none;
+      display: flex;
       flex-direction: column;
       gap: 1.5rem;
       padding: 1.5rem;
@@ -526,7 +526,7 @@
       </div>
 
       <!-- Feedback Area (ends the chat) -->
-      <div id="feedback-overlay" class="feedback-overlay">
+      <div id="feedback-overlay" class="feedback-overlay hidden">
         <div class="feedback-header">
           <h2>Evaluation & Feedback Report</h2>
           <p>The interview is completed. Below is the grading summary.</p>
