@@ -9,142 +9,339 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-base: #030712;
+      --bg-base: #020617;
       --bg-elevated: #0a0f1a;
-      --glass-bg: rgba(15, 23, 42, 0.55);
-      --glass-bg-hover: rgba(20, 30, 52, 0.65);
-      --glass-border: rgba(255, 255, 255, 0.07);
-      --glass-border-strong: rgba(255, 255, 255, 0.12);
-      --gradient-primary: linear-gradient(135deg, #22d3ee 0%, #6366f1 45%, #a855f7 100%);
-      --gradient-primary-soft: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(168, 85, 247, 0.15));
-      --gradient-surface: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 100%);
+      --glass-bg: rgba(15, 23, 42, 0.42);
+      --glass-bg-strong: rgba(15, 23, 42, 0.62);
+      --glass-border: rgba(255, 255, 255, 0.06);
+      --glass-border-strong: rgba(255, 255, 255, 0.14);
+      --gradient-primary: linear-gradient(135deg, #22d3ee 0%, #6366f1 48%, #c026d3 100%);
+      --gradient-primary-soft: linear-gradient(135deg, rgba(34, 211, 238, 0.18), rgba(192, 38, 211, 0.14));
+      --gradient-surface: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.01) 100%);
       --accent-cyan: #22d3ee;
       --accent-indigo: #6366f1;
       --accent-purple: #a855f7;
+      --accent-fuchsia: #c026d3;
       --text-primary: #f8fafc;
       --text-secondary: #94a3b8;
       --text-tertiary: #64748b;
       --success: #34d399;
-      --success-bg: rgba(52, 211, 153, 0.12);
       --warning: #fbbf24;
-      --warning-bg: rgba(251, 191, 36, 0.12);
       --error: #f87171;
-      --error-bg: rgba(248, 113, 113, 0.12);
-      --shadow-sm: 0 4px 24px rgba(0, 0, 0, 0.25);
-      --shadow-md: 0 8px 40px rgba(0, 0, 0, 0.35);
-      --shadow-glow: 0 0 60px rgba(99, 102, 241, 0.15);
+      --shadow-sm: 0 4px 24px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 12px 48px rgba(0, 0, 0, 0.4);
+      --shadow-glow: 0 0 80px rgba(99, 102, 241, 0.18);
+      --shadow-float: 0 20px 60px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255,255,255,0.04);
       --radius-sm: 10px;
       --radius-md: 16px;
-      --radius-lg: 24px;
-      --radius-xl: 32px;
-      --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      --radius-lg: 22px;
+      --radius-xl: 28px;
+      --transition: 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-spring: 0.55s cubic-bezier(0.34, 1.3, 0.64, 1);
     }
 
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html {
-      scroll-behavior: smooth;
-    }
+    html { scroll-behavior: smooth; }
 
     body {
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: var(--bg-base);
+      background: var(--bg-base);
       color: var(--text-primary);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Ambient background */
+    /* ── Ambient 3D space ── */
     .ambient-bg {
       position: fixed;
       inset: 0;
       z-index: 0;
       pointer-events: none;
       overflow: hidden;
+      perspective: 1200px;
     }
 
     .ambient-bg::before {
       content: '';
       position: absolute;
       inset: 0;
-      background-image:
-        radial-gradient(ellipse 80% 50% at 20% -10%, rgba(34, 211, 238, 0.18) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 45% at 85% 15%, rgba(168, 85, 247, 0.16) 0%, transparent 50%),
-        radial-gradient(ellipse 50% 40% at 50% 100%, rgba(99, 102, 241, 0.12) 0%, transparent 55%);
+      background:
+        radial-gradient(ellipse 90% 60% at 15% -5%, rgba(34, 211, 238, 0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 50% at 90% 10%, rgba(192, 38, 211, 0.18) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 45% at 50% 110%, rgba(99, 102, 241, 0.14) 0%, transparent 55%);
     }
 
     .orb {
       position: absolute;
       border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.5;
-      animation: orbFloat 20s ease-in-out infinite;
+      filter: blur(90px);
+      animation: orbFloat 22s ease-in-out infinite;
     }
 
-    .orb-1 {
-      width: 480px;
-      height: 480px;
-      background: rgba(34, 211, 238, 0.12);
-      top: -120px;
-      left: -100px;
-    }
-
-    .orb-2 {
-      width: 400px;
-      height: 400px;
-      background: rgba(168, 85, 247, 0.14);
-      top: 40%;
-      right: -120px;
-      animation-delay: -7s;
-    }
-
-    .orb-3 {
-      width: 320px;
-      height: 320px;
-      background: rgba(99, 102, 241, 0.1);
-      bottom: -80px;
-      left: 30%;
-      animation-delay: -14s;
-    }
+    .orb-1 { width: 520px; height: 520px; background: rgba(34, 211, 238, 0.14); top: -140px; left: -120px; }
+    .orb-2 { width: 440px; height: 440px; background: rgba(192, 38, 211, 0.16); top: 35%; right: -140px; animation-delay: -8s; }
+    .orb-3 { width: 360px; height: 360px; background: rgba(99, 102, 241, 0.12); bottom: -100px; left: 25%; animation-delay: -15s; }
+    .orb-4 { width: 280px; height: 280px; background: rgba(34, 211, 238, 0.1); top: 60%; left: 10%; animation-delay: -4s; }
 
     @keyframes orbFloat {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      33% { transform: translate(30px, -20px) scale(1.05); }
-      66% { transform: translate(-20px, 15px) scale(0.95); }
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      33% { transform: translate3d(35px, -25px, 20px) scale(1.06); }
+      66% { transform: translate3d(-25px, 20px, -10px) scale(0.94); }
     }
 
     .grid-overlay {
       position: absolute;
-      inset: 0;
+      inset: -50% -50%;
       background-image:
-        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-      background-size: 64px 64px;
-      mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black 20%, transparent 75%);
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 72px 72px;
+      transform: rotateX(62deg) translateY(-10%);
+      transform-origin: center top;
+      mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, black 10%, transparent 70%);
+      animation: gridDrift 30s linear infinite;
     }
 
-    /* Header */
+    @keyframes gridDrift {
+      0% { transform: rotateX(62deg) translateY(-10%) translateZ(0); }
+      100% { transform: rotateX(62deg) translateY(-10%) translateZ(72px); }
+    }
+
+    .mesh-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(99, 102, 241, 0.08);
+      animation: ringPulse 8s ease-in-out infinite;
+    }
+
+    .mesh-ring-1 { width: 600px; height: 600px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+    .mesh-ring-2 { width: 900px; height: 900px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: -3s; opacity: 0.5; }
+
+    @keyframes ringPulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+      50% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.6; }
+    }
+
+    /* ── Landing page ── */
+    .landing-page {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      transition: opacity 0.65s ease, transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .landing-page.exit {
+      opacity: 0;
+      transform: scale(1.04);
+      pointer-events: none;
+    }
+
+    .landing-content {
+      text-align: center;
+      max-width: 720px;
+      animation: landingIn 1s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+    }
+
+    @keyframes landingIn {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .landing-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.22);
+      color: #a5b4fc;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 1.75rem;
+    }
+
+    .landing-eyebrow-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 10px var(--accent-cyan);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .landing-headline {
+      font-size: clamp(2.2rem, 5.5vw, 3.75rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+      margin-bottom: 1.25rem;
+      background: linear-gradient(135deg, #f8fafc 0%, #22d3ee 40%, #a855f7 80%, #f8fafc 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: headlineShimmer 6s linear infinite;
+    }
+
+    @keyframes headlineShimmer {
+      0% { background-position: 0% center; }
+      100% { background-position: 200% center; }
+    }
+
+    .landing-tagline {
+      font-size: clamp(1rem, 2.2vw, 1.15rem);
+      color: var(--text-secondary);
+      line-height: 1.75;
+      max-width: 560px;
+      margin: 0 auto 2.5rem;
+      font-weight: 400;
+    }
+
+    .landing-stats {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2.75rem;
+    }
+
+    .landing-stat {
+      padding: 0.75rem 1.25rem;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(16px);
+      border-radius: var(--radius-md);
+      min-width: 120px;
+    }
+
+    .landing-stat strong {
+      display: block;
+      font-size: 1.35rem;
+      font-weight: 800;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.2;
+    }
+
+    .landing-stat span {
+      font-size: 0.72rem;
+      color: var(--text-tertiary);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .launch-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      padding: 1.05rem 2.5rem;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      background: var(--gradient-primary);
+      box-shadow: 0 0 40px rgba(99, 102, 241, 0.45), 0 8px 32px rgba(0,0,0,0.3);
+      transition: transform var(--transition), box-shadow var(--transition);
+      overflow: visible;
+      letter-spacing: 0.01em;
+    }
+
+    .launch-btn::before {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 999px;
+      background: var(--gradient-primary);
+      opacity: 0.45;
+      filter: blur(14px);
+      z-index: -1;
+      animation: launchGlow 2.5s ease-in-out infinite;
+    }
+
+    .launch-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    @keyframes launchGlow {
+      0%, 100% { opacity: 0.35; transform: scale(1); }
+      50% { opacity: 0.65; transform: scale(1.06); }
+    }
+
+    .launch-btn:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 0 60px rgba(99, 102, 241, 0.6), 0 12px 40px rgba(0,0,0,0.35);
+    }
+
+    .launch-btn:active { transform: translateY(-1px) scale(0.99); }
+
+    .launch-btn svg {
+      width: 20px;
+      height: 20px;
+      transition: transform var(--transition);
+    }
+
+    .launch-btn:hover svg { transform: translateX(4px); }
+
+    .landing-footer-note {
+      margin-top: 2.5rem;
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      letter-spacing: 0.03em;
+    }
+
+    /* ── App dashboard shell ── */
+    .app-dashboard {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease 0.15s, transform 0.7s cubic-bezier(0.34, 1.1, 0.64, 1) 0.15s;
+    }
+
+    .app-dashboard.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
     header {
       position: sticky;
       top: 0;
       z-index: 100;
-      padding: 1rem 2rem;
+      padding: 0.875rem 1.75rem;
       border-bottom: 1px solid var(--glass-border);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      background: rgba(3, 7, 18, 0.75);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      background: rgba(2, 6, 23, 0.72);
     }
 
     .header-inner {
-      max-width: 1400px;
+      max-width: 1380px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
@@ -152,16 +349,12 @@
       gap: 1rem;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 0.875rem;
-    }
+    .brand { display: flex; align-items: center; gap: 0.8rem; }
 
     .brand-mark {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
       background: var(--gradient-primary);
       display: flex;
       align-items: center;
@@ -170,17 +363,12 @@
       flex-shrink: 0;
     }
 
-    .brand-mark svg {
-      width: 22px;
-      height: 22px;
-      color: white;
-    }
+    .brand-mark svg { width: 20px; height: 20px; color: white; }
 
     .brand-text h1 {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       font-weight: 700;
       letter-spacing: -0.03em;
-      line-height: 1.2;
       background: var(--gradient-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -189,33 +377,32 @@
 
     .brand-text span {
       display: block;
-      font-size: 0.7rem;
-      font-weight: 500;
+      font-size: 0.65rem;
+      font-weight: 600;
       color: var(--text-tertiary);
-      letter-spacing: 0.06em;
+      letter-spacing: 0.07em;
       text-transform: uppercase;
-      margin-top: 0.1rem;
+      margin-top: 0.05rem;
     }
 
     .badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.45rem;
-      background: rgba(99, 102, 241, 0.12);
-      border: 1px solid rgba(99, 102, 241, 0.25);
+      gap: 0.4rem;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.22);
       color: #a5b4fc;
-      padding: 0.4rem 0.9rem;
+      padding: 0.35rem 0.85rem;
       border-radius: 9999px;
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       font-weight: 600;
-      letter-spacing: 0.01em;
       transition: all var(--transition);
     }
 
     .badge::before {
       content: '';
-      width: 7px;
-      height: 7px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background: currentColor;
       box-shadow: 0 0 8px currentColor;
@@ -224,105 +411,229 @@
 
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(0.85); }
+      50% { opacity: 0.55; transform: scale(0.85); }
     }
 
-    /* Main layout */
     main {
-      position: relative;
-      z-index: 1;
       flex: 1;
-      max-width: 1400px;
+      max-width: 1380px;
       width: 100%;
       margin: 0 auto;
-      padding: 2rem;
+      padding: 1.5rem 1.75rem 1.75rem;
       display: grid;
-      grid-template-columns: 360px 1fr;
-      gap: 1.75rem;
+      grid-template-columns: minmax(300px, 340px) 1fr;
+      gap: 1.5rem;
       align-items: stretch;
     }
 
-    /* Sidebar */
-    .sidebar {
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-    }
+    /* ── Glass cards ── */
+    .sidebar { display: flex; flex-direction: column; gap: 1.15rem; }
 
-    .sidebar-card {
+    .glass-card {
       position: relative;
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
-      backdrop-filter: blur(24px) saturate(150%);
-      -webkit-backdrop-filter: blur(24px) saturate(150%);
+      backdrop-filter: blur(28px) saturate(160%);
+      -webkit-backdrop-filter: blur(28px) saturate(160%);
       border-radius: var(--radius-lg);
-      padding: 1.5rem;
-      box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-      transition: border-color var(--transition), box-shadow var(--transition);
+      padding: 1.35rem;
+      box-shadow: var(--shadow-float);
+      transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
       overflow: hidden;
     }
 
-    .sidebar-card::before {
+    .glass-card::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, transparent 40%, rgba(99,102,241,0.08) 100%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .glass-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
       height: 1px;
       background: var(--gradient-surface);
     }
 
-    .sidebar-card:hover {
+    .glass-card:hover {
+      transform: translateY(-3px);
       border-color: var(--glass-border-strong);
-      box-shadow: var(--shadow-md), var(--shadow-glow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      box-shadow: var(--shadow-md), var(--shadow-glow), 0 0 0 1px rgba(255,255,255,0.04);
     }
 
     .sidebar-card h2 {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 700;
-      margin-bottom: 1.25rem;
-      color: var(--text-primary);
+      margin-bottom: 1.15rem;
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.55rem;
       letter-spacing: -0.01em;
     }
 
     .card-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: var(--radius-sm);
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
       background: var(--gradient-primary-soft);
       border: 1px solid rgba(99, 102, 241, 0.2);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       flex-shrink: 0;
     }
 
-    .form-group {
-      margin-bottom: 1.15rem;
-    }
-
-    .form-group:last-of-type {
-      margin-bottom: 1.35rem;
-    }
+    .form-group { margin-bottom: 1rem; }
+    .form-group:last-of-type { margin-bottom: 1.2rem; }
 
     .form-group label {
       display: block;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: var(--text-secondary);
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-      letter-spacing: 0.04em;
+      margin-bottom: 0.45rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
       text-transform: uppercase;
     }
 
-    select, input {
+    /* Native select hidden, custom dropdown */
+    .select-wrapper { position: relative; }
+
+    .select-native {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .custom-select {
+      position: relative;
+      user-select: none;
+    }
+
+    .custom-select-trigger {
       width: 100%;
-      padding: 0.8rem 1rem;
-      background: rgba(3, 7, 18, 0.6);
+      padding: 0.78rem 2.75rem 0.78rem 1rem;
+      background: rgba(2, 6, 23, 0.65);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .custom-select-trigger:hover:not(.disabled) {
+      border-color: rgba(99, 102, 241, 0.35);
+      background: rgba(2, 6, 23, 0.8);
+    }
+
+    .custom-select-trigger:focus-visible,
+    .custom-select.open .custom-select-trigger {
+      border-color: rgba(99, 102, 241, 0.55);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18), 0 0 24px rgba(99, 102, 241, 0.12);
+      outline: none;
+    }
+
+    .custom-select-trigger.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .custom-select-trigger .placeholder { color: var(--text-tertiary); }
+
+    .custom-select-chevron {
+      position: absolute;
+      right: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: var(--text-secondary);
+      transition: transform var(--transition-spring);
+      pointer-events: none;
+    }
+
+    .custom-select.open .custom-select-chevron { transform: translateY(-50%) rotate(180deg); }
+
+    .custom-select-options {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: rgba(10, 15, 26, 0.95);
+      border: 1px solid var(--glass-border-strong);
+      border-radius: var(--radius-sm);
+      backdrop-filter: blur(24px);
+      box-shadow: var(--shadow-md), 0 0 40px rgba(99, 102, 241, 0.12);
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transform: translateY(-8px) scale(0.98);
+      transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+                  opacity 0.25s ease,
+                  transform 0.35s cubic-bezier(0.34, 1.2, 0.64, 1);
+      pointer-events: none;
+    }
+
+    .custom-select.open .custom-select-options {
+      max-height: 240px;
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+      overflow-y: auto;
+    }
+
+    .custom-select-option {
+      padding: 0.7rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+
+    .custom-select-option:last-child { border-bottom: none; }
+
+    .custom-select-option:hover,
+    .custom-select-option.highlighted {
+      background: rgba(99, 102, 241, 0.12);
+      color: var(--text-primary);
+    }
+
+    .custom-select-option.selected {
+      background: rgba(34, 211, 238, 0.08);
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.78rem 1rem;
+      background: rgba(2, 6, 23, 0.65);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-sm);
       color: var(--text-primary);
@@ -333,38 +644,19 @@
       transition: all var(--transition);
     }
 
-    select {
-      cursor: pointer;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 0.85rem center;
-      padding-right: 2.5rem;
+    input[type="text"]:focus {
+      border-color: rgba(99, 102, 241, 0.55);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18), 0 0 24px rgba(99, 102, 241, 0.1);
+      background: rgba(2, 6, 23, 0.85);
     }
 
-    select:disabled, input:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    input:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    select option {
-      background: var(--bg-elevated);
-      color: var(--text-primary);
-    }
-
-    select:focus, input:focus {
-      border-color: rgba(99, 102, 241, 0.5);
-      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15), 0 0 20px rgba(99, 102, 241, 0.1);
-      background-color: rgba(3, 7, 18, 0.8);
-    }
-
-    input::placeholder {
-      color: var(--text-tertiary);
-    }
+    input::placeholder { color: var(--text-tertiary); }
 
     button {
       width: 100%;
-      padding: 0.85rem 1.25rem;
+      padding: 0.82rem 1.2rem;
       font-family: inherit;
       font-size: 0.875rem;
       font-weight: 700;
@@ -373,7 +665,6 @@
       outline: none;
       cursor: pointer;
       transition: all var(--transition);
-      letter-spacing: 0.01em;
     }
 
     button.primary-btn {
@@ -394,12 +685,10 @@
 
     button.primary-btn:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(99, 102, 241, 0.45), inset 0 1px 0 rgba(255,255,255,0.25);
+      box-shadow: 0 8px 32px rgba(99, 102, 241, 0.45);
     }
 
-    button.primary-btn:active:not(:disabled) {
-      transform: translateY(0);
-    }
+    button.primary-btn:active:not(:disabled) { transform: translateY(0); }
 
     button.primary-btn:disabled {
       background: rgba(30, 41, 59, 0.8);
@@ -409,27 +698,24 @@
       transform: none;
     }
 
-    /* Progress */
-    .progress-item {
-      margin-bottom: 1.35rem;
+    button.primary-btn:focus-visible {
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3), 0 4px 20px rgba(99, 102, 241, 0.35);
     }
 
-    .progress-item:last-child {
-      margin-bottom: 0;
-    }
+    /* ── Progress bars ── */
+    .progress-item { margin-bottom: 1.2rem; }
+    .progress-item:last-child { margin-bottom: 0; }
 
     .progress-labels {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.8rem;
-      margin-bottom: 0.6rem;
+      font-size: 0.78rem;
+      margin-bottom: 0.55rem;
       font-weight: 500;
     }
 
-    .progress-labels span:first-child {
-      color: var(--text-secondary);
-    }
+    .progress-labels span:first-child { color: var(--text-secondary); }
 
     .progress-labels span:last-child {
       color: var(--accent-cyan);
@@ -439,11 +725,28 @@
 
     .progress-bar-outer {
       width: 100%;
-      height: 6px;
-      background: rgba(3, 7, 18, 0.7);
+      height: 8px;
+      background: rgba(2, 6, 23, 0.75);
       border-radius: 999px;
-      overflow: hidden;
+      overflow: visible;
       border: 1px solid var(--glass-border);
+      position: relative;
+    }
+
+    .progress-bar-outer.glow::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 999px;
+      background: var(--gradient-primary);
+      opacity: 0.15;
+      filter: blur(8px);
+      animation: barGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes barGlow {
+      0%, 100% { opacity: 0.1; }
+      50% { opacity: 0.25; }
     }
 
     .progress-bar-inner {
@@ -451,17 +754,29 @@
       width: 0%;
       background: var(--gradient-primary);
       border-radius: 999px;
-      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 0 12px rgba(34, 211, 238, 0.5);
+      transition: width 0.8s cubic-bezier(0.34, 1.2, 0.64, 1);
+      box-shadow: 0 0 16px rgba(34, 211, 238, 0.55), 0 0 4px rgba(168, 85, 247, 0.4);
       position: relative;
+      z-index: 1;
+    }
+
+    .progress-bar-inner.mount-animate {
+      animation: barMount 1.2s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+    }
+
+    @keyframes barMount {
+      0% { width: 0%; opacity: 0.5; }
+      40% { width: 8%; opacity: 1; }
+      100% { width: var(--target-width, 0%); }
     }
 
     .progress-bar-inner::after {
       content: '';
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-      animation: shimmer 2s infinite;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+      animation: shimmer 2.2s infinite;
+      border-radius: inherit;
     }
 
     @keyframes shimmer {
@@ -472,19 +787,18 @@
     .tag-container {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.45rem;
-      margin-top: 0.75rem;
+      gap: 0.4rem;
+      margin-top: 0.65rem;
     }
 
     .day-tag {
       background: rgba(168, 85, 247, 0.1);
-      border: 1px solid rgba(168, 85, 247, 0.25);
+      border: 1px solid rgba(168, 85, 247, 0.22);
       color: #c4b5fd;
-      font-size: 0.7rem;
+      font-size: 0.68rem;
       font-weight: 600;
-      padding: 0.25rem 0.6rem;
+      padding: 0.22rem 0.55rem;
       border-radius: 6px;
-      letter-spacing: 0.02em;
       animation: tagPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     }
 
@@ -493,118 +807,108 @@
       to { opacity: 1; transform: scale(1); }
     }
 
-    /* Chat container */
+    /* ── Chat panel ── */
     .chat-container {
       position: relative;
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
-      backdrop-filter: blur(24px) saturate(150%);
-      -webkit-backdrop-filter: blur(24px) saturate(150%);
+      backdrop-filter: blur(28px) saturate(160%);
+      -webkit-backdrop-filter: blur(28px) saturate(160%);
       border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-md), var(--shadow-glow), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      box-shadow: var(--shadow-float), var(--shadow-glow);
       display: flex;
       flex-direction: column;
-      height: calc(100vh - 140px);
-      min-height: 580px;
-      max-height: 820px;
+      height: calc(100vh - 130px);
+      min-height: 560px;
+      max-height: 800px;
       overflow: hidden;
+      transition: transform var(--transition), box-shadow var(--transition);
     }
 
     .chat-container::before {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 120px;
-      background: linear-gradient(180deg, rgba(99, 102, 241, 0.06) 0%, transparent 100%);
+      top: 0; left: 0; right: 0;
+      height: 100px;
+      background: linear-gradient(180deg, rgba(99, 102, 241, 0.07) 0%, transparent 100%);
       pointer-events: none;
     }
 
     .chat-header {
-      padding: 1.25rem 1.75rem;
+      padding: 1.1rem 1.5rem;
       border-bottom: 1px solid var(--glass-border);
-      background: rgba(3, 7, 18, 0.35);
+      background: rgba(2, 6, 23, 0.4);
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 0.9rem;
       flex-shrink: 0;
     }
 
     .candidate-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
+      width: 46px;
+      height: 46px;
+      border-radius: 13px;
       background: var(--gradient-primary);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 800;
-      font-size: 1rem;
+      font-size: 0.95rem;
       color: white;
-      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35), inset 0 1px 0 rgba(255,255,255,0.25);
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
       flex-shrink: 0;
     }
 
     .candidate-info h3 {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 700;
       letter-spacing: -0.02em;
-      margin-bottom: 0.15rem;
+      margin-bottom: 0.1rem;
     }
 
     .candidate-info p {
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       color: var(--text-secondary);
       font-weight: 500;
     }
 
     .chat-messages {
       flex: 1;
-      padding: 1.75rem;
+      padding: 1.5rem;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 0.9rem;
       scroll-behavior: smooth;
+      overscroll-behavior: contain;
     }
 
-    .chat-messages::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .chat-messages::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
+    .chat-messages::-webkit-scrollbar { width: 5px; }
+    .chat-messages::-webkit-scrollbar-track { background: transparent; }
     .chat-messages::-webkit-scrollbar-thumb {
-      background: rgba(99, 102, 241, 0.3);
+      background: rgba(99, 102, 241, 0.35);
       border-radius: 999px;
     }
 
-    .chat-messages::-webkit-scrollbar-thumb:hover {
-      background: rgba(99, 102, 241, 0.5);
-    }
-
     .message {
-      max-width: 78%;
-      padding: 1rem 1.25rem;
+      max-width: 80%;
+      padding: 0.95rem 1.15rem;
       border-radius: var(--radius-md);
       line-height: 1.65;
-      font-size: 0.9rem;
-      font-weight: 450;
+      font-size: 0.875rem;
+      font-weight: 400;
       animation: messageIn 0.4s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
       word-wrap: break-word;
     }
 
     @keyframes messageIn {
-      from { transform: translateY(16px) scale(0.97); opacity: 0; }
+      from { transform: translateY(14px) scale(0.97); opacity: 0; }
       to { transform: translateY(0) scale(1); opacity: 1; }
     }
 
     .message.interviewer {
       align-self: flex-start;
-      background: rgba(15, 23, 42, 0.85);
+      background: rgba(15, 23, 42, 0.88);
       border: 1px solid var(--glass-border);
       border-left: 3px solid var(--accent-indigo);
       border-bottom-left-radius: 4px;
@@ -613,29 +917,21 @@
 
     .message.candidate {
       align-self: flex-end;
-      background: linear-gradient(135deg, rgba(34, 211, 238, 0.12) 0%, rgba(168, 85, 247, 0.12) 100%);
-      border: 1px solid rgba(99, 102, 241, 0.25);
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.22);
       border-bottom-right-radius: 4px;
-      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.1);
     }
 
-    /* Typing loader */
-    .typing-loader {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.15rem 0;
-    }
+    .typing-loader { display: flex; align-items: center; gap: 0.35rem; }
 
     .typing-dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       background: var(--gradient-primary);
       border-radius: 50%;
       animation: typingBounce 1.4s infinite ease-in-out both;
     }
 
-    .typing-dot:nth-child(1) { animation-delay: 0s; }
     .typing-dot:nth-child(2) { animation-delay: 0.16s; }
     .typing-dot:nth-child(3) { animation-delay: 0.32s; }
 
@@ -645,154 +941,111 @@
     }
 
     .chat-input-area {
-      padding: 1.25rem 1.75rem;
+      padding: 1.1rem 1.5rem;
       border-top: 1px solid var(--glass-border);
-      background: rgba(3, 7, 18, 0.5);
+      background: rgba(2, 6, 23, 0.55);
       display: flex;
-      gap: 0.75rem;
+      gap: 0.65rem;
       flex-shrink: 0;
     }
 
-    .chat-input-area input {
-      flex: 1;
-      background: rgba(3, 7, 18, 0.7);
-      border-radius: var(--radius-sm);
-    }
+    .chat-input-area input { flex: 1; }
 
     .chat-input-area button {
       width: auto;
-      min-width: 140px;
-      padding: 0.8rem 1.5rem;
+      min-width: 130px;
       white-space: nowrap;
     }
 
-    /* Feedback overlay */
+    /* ── Feedback ── */
     .feedback-overlay {
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
-      padding: 2rem 1.75rem;
+      gap: 1.15rem;
+      padding: 1.75rem 1.5rem;
       overflow-y: auto;
       height: 100%;
       animation: fadeIn 0.5s ease forwards;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .feedback-header {
-      text-align: center;
-      padding: 0.5rem 0 1rem;
-    }
+    .feedback-header { text-align: center; padding: 0.25rem 0 0.75rem; }
 
     .feedback-header h2 {
-      font-size: 1.75rem;
+      font-size: 1.6rem;
       font-weight: 800;
       letter-spacing: -0.03em;
       background: var(--gradient-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
     }
 
-    .feedback-header p {
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
+    .feedback-header p { color: var(--text-secondary); font-size: 0.875rem; }
 
     .feedback-summary {
-      background: rgba(15, 23, 42, 0.5);
+      background: rgba(15, 23, 42, 0.55);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-md);
-      padding: 1.5rem;
+      padding: 1.35rem;
       line-height: 1.75;
-      font-size: 0.925rem;
-      color: var(--text-primary);
+      font-size: 0.9rem;
       position: relative;
-      overflow: hidden;
-    }
-
-    .feedback-summary::before {
-      content: '"';
-      position: absolute;
-      top: -10px;
-      left: 16px;
-      font-size: 4rem;
-      font-weight: 800;
-      background: var(--gradient-primary);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      opacity: 0.2;
-      line-height: 1;
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow-sm);
     }
 
     .feedback-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1.25rem;
+      gap: 1.1rem;
     }
 
     .feedback-section {
-      background: rgba(15, 23, 42, 0.4);
+      background: rgba(15, 23, 42, 0.45);
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-md);
-      padding: 1.35rem;
-      transition: border-color var(--transition);
+      padding: 1.25rem;
+      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-sm);
+      transition: transform var(--transition), border-color var(--transition);
     }
 
     .feedback-section:hover {
+      transform: translateY(-2px);
       border-color: var(--glass-border-strong);
     }
 
     .feedback-section h3 {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 700;
-      margin-bottom: 1rem;
+      margin-bottom: 0.85rem;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      letter-spacing: -0.01em;
+      gap: 0.45rem;
     }
 
-    .feedback-section.strengths {
-      border-top: 2px solid rgba(52, 211, 153, 0.4);
-    }
-
+    .feedback-section.strengths { border-top: 2px solid rgba(52, 211, 153, 0.45); }
     .feedback-section.strengths h3 { color: var(--success); }
-
-    .feedback-section.gaps {
-      border-top: 2px solid rgba(251, 191, 36, 0.4);
-    }
-
+    .feedback-section.gaps { border-top: 2px solid rgba(251, 191, 36, 0.45); }
     .feedback-section.gaps h3 { color: var(--warning); }
-
-    .feedback-section.next {
-      border-top: 2px solid rgba(99, 102, 241, 0.4);
-    }
-
+    .feedback-section.next { border-top: 2px solid rgba(99, 102, 241, 0.45); }
     .feedback-section.next h3 { color: var(--accent-indigo); }
 
-    .feedback-list {
-      list-style-type: none;
-    }
+    .feedback-list { list-style: none; }
 
     .feedback-list li {
-      margin-bottom: 0.7rem;
+      margin-bottom: 0.6rem;
+      padding-left: 1.25rem;
       position: relative;
-      padding-left: 1.35rem;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       line-height: 1.55;
-      color: var(--text-primary);
-      font-weight: 450;
-    }
-
-    .feedback-list li:last-child {
-      margin-bottom: 0;
+      font-weight: 400;
     }
 
     .feedback-list li::before {
@@ -800,16 +1053,16 @@
       position: absolute;
       left: 0;
       top: 0.55em;
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
     }
 
-    .feedback-section.strengths .feedback-list li::before { background: var(--success); box-shadow: 0 0 8px var(--success); }
-    .feedback-section.gaps .feedback-list li::before { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
-    .feedback-section.next .feedback-list li::before { background: var(--accent-indigo); box-shadow: 0 0 8px var(--accent-indigo); }
+    .feedback-section.strengths .feedback-list li::before { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .feedback-section.gaps .feedback-list li::before { background: var(--warning); box-shadow: 0 0 6px var(--warning); }
+    .feedback-section.next .feedback-list li::before { background: var(--accent-indigo); box-shadow: 0 0 6px var(--accent-indigo); }
 
-    /* Welcome screen */
+    /* Dashboard welcome (inside chat) */
     .welcome-screen {
       flex: 1;
       display: flex;
@@ -817,102 +1070,87 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      padding: 3rem 2rem;
-      gap: 1.25rem;
+      padding: 2.5rem 1.75rem;
+      gap: 1rem;
     }
 
     .welcome-icon {
-      width: 80px;
-      height: 80px;
-      border-radius: 24px;
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
       background: var(--gradient-primary-soft);
-      border: 1px solid rgba(99, 102, 241, 0.25);
+      border: 1px solid rgba(99, 102, 241, 0.22);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 0.5rem;
       box-shadow: var(--shadow-glow);
       animation: welcomePulse 3s ease-in-out infinite;
     }
 
     @keyframes welcomePulse {
-      0%, 100% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.15); }
-      50% { box-shadow: 0 0 60px rgba(99, 102, 241, 0.25); }
+      0%, 100% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.12); }
+      50% { box-shadow: 0 0 60px rgba(99, 102, 241, 0.22); }
     }
 
-    .welcome-icon svg {
-      width: 36px;
-      height: 36px;
-      color: var(--accent-cyan);
-    }
+    .welcome-icon svg { width: 32px; height: 32px; color: var(--accent-cyan); }
 
     .welcome-screen h2 {
-      font-size: 2rem;
+      font-size: 1.75rem;
       font-weight: 800;
-      letter-spacing: -0.04em;
+      letter-spacing: -0.03em;
       background: var(--gradient-primary);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      line-height: 1.2;
     }
 
     .welcome-screen p {
       color: var(--text-secondary);
-      max-width: 480px;
-      line-height: 1.7;
-      font-size: 0.95rem;
-      font-weight: 450;
+      max-width: 440px;
+      line-height: 1.65;
+      font-size: 0.9rem;
     }
 
     .welcome-features {
       display: flex;
-      gap: 1rem;
-      margin-top: 1rem;
+      gap: 0.65rem;
       flex-wrap: wrap;
       justify-content: center;
+      margin-top: 0.5rem;
     }
 
     .welcome-feature {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
-      padding: 0.5rem 1rem;
+      gap: 0.4rem;
+      padding: 0.4rem 0.85rem;
       background: rgba(15, 23, 42, 0.5);
       border: 1px solid var(--glass-border);
       border-radius: 999px;
-      font-size: 0.78rem;
+      font-size: 0.72rem;
       font-weight: 600;
       color: var(--text-secondary);
     }
 
     .welcome-feature-dot {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
       background: var(--gradient-primary);
     }
 
-    .welcome-screen .badge {
-      margin-top: 0.5rem;
-    }
-
-    /* Footer */
     footer {
-      position: relative;
-      z-index: 1;
-      padding: 1rem 2rem;
+      padding: 0.85rem 1.75rem;
       text-align: center;
       border-top: 1px solid var(--glass-border);
-      background: rgba(3, 7, 18, 0.5);
+      background: rgba(2, 6, 23, 0.55);
       backdrop-filter: blur(12px);
     }
 
     footer p {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--text-tertiary);
       font-weight: 500;
-      letter-spacing: 0.02em;
     }
 
     footer span {
@@ -923,222 +1161,252 @@
       font-weight: 700;
     }
 
-    /* Utilities */
-    .hidden {
-      display: none !important;
-    }
+    .hidden { display: none !important; }
 
-    /* Responsive */
+    /* ── Responsive ── */
     @media (max-width: 1024px) {
       main {
         grid-template-columns: 1fr;
-        padding: 1.25rem;
+        padding: 1.15rem;
       }
 
       .sidebar {
-        flex-direction: row;
-        flex-wrap: wrap;
-      }
-
-      .sidebar-card {
-        flex: 1;
-        min-width: 280px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
       }
 
       .chat-container {
-        height: 70vh;
-        min-height: 500px;
+        height: min(70vh, 680px);
+        min-height: 480px;
       }
 
-      .feedback-grid {
-        grid-template-columns: 1fr;
-      }
+      .feedback-grid { grid-template-columns: 1fr; }
     }
 
     @media (max-width: 640px) {
-      header {
-        padding: 0.875rem 1rem;
-      }
+      .landing-stats { flex-direction: column; align-items: center; }
+      .landing-stat { width: 100%; max-width: 220px; }
 
-      .brand-text span {
-        display: none;
-      }
+      header { padding: 0.75rem 1rem; }
+      .brand-text span { display: none; }
 
-      .sidebar {
-        flex-direction: column;
-      }
+      .sidebar { grid-template-columns: 1fr; }
 
-      .message {
-        max-width: 92%;
-      }
+      main { padding: 1rem; gap: 1rem; }
 
-      .chat-input-area {
-        flex-direction: column;
-      }
+      .glass-card { padding: 1.15rem; }
 
-      .chat-input-area button {
-        width: 100%;
-      }
+      .message { max-width: 94%; }
 
-      .welcome-screen h2 {
-        font-size: 1.5rem;
-      }
+      .chat-input-area { flex-direction: column; }
+      .chat-input-area button { width: 100%; }
 
-      .welcome-features {
-        flex-direction: column;
-        align-items: center;
+      .welcome-screen h2 { font-size: 1.4rem; }
+      .welcome-features { flex-direction: column; align-items: center; }
+
+      .chat-container {
+        height: auto;
+        min-height: 420px;
+        max-height: none;
       }
     }
   </style>
 </head>
 <body>
 
+  <!-- 3D ambient backdrop -->
   <div class="ambient-bg" aria-hidden="true">
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
     <div class="orb orb-3"></div>
+    <div class="orb orb-4"></div>
+    <div class="mesh-ring mesh-ring-1"></div>
+    <div class="mesh-ring mesh-ring-2"></div>
     <div class="grid-overlay"></div>
   </div>
 
-  <header>
-    <div class="header-inner">
-      <div class="brand">
-        <div class="brand-mark">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>
-          </svg>
-        </div>
-        <div class="brand-text">
-          <h1>AI Interview Agent</h1>
-          <span>31-Day Cohort Platform</span>
-        </div>
+  <!-- LANDING PAGE -->
+  <section id="landing-page" class="landing-page" aria-label="Welcome">
+    <div class="landing-content">
+      <div class="landing-eyebrow">
+        <span class="landing-eyebrow-dot"></span>
+        31-Day AI Cohort Platform
       </div>
-      <div id="connection-badge" class="badge">Checking connection...</div>
+      <h1 class="landing-headline">AI-Powered Talent Evaluation at Scale</h1>
+      <p class="landing-tagline">
+        Conduct adaptive, curriculum-aware technical interviews powered by learning history.
+        Evaluate cohort members with precision — from prompt engineering to agentic workflows.
+      </p>
+      <div class="landing-stats">
+        <div class="landing-stat"><strong>31</strong><span>Curriculum Days</span></div>
+        <div class="landing-stat"><strong>8</strong><span>Deep Questions</span></div>
+        <div class="landing-stat"><strong>AI</strong><span>Instant Feedback</span></div>
+      </div>
+      <button id="launch-btn" class="launch-btn" type="button">
+        Launch Platform
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+      </button>
+      <p class="landing-footer-note">Hackathon Demo · Production-Ready Interview Agent</p>
     </div>
-  </header>
+  </section>
 
-  <main>
-    <div class="sidebar">
-      <div class="sidebar-card">
-        <h2><span class="card-icon">📋</span> Setup Session</h2>
-        <div class="form-group">
-          <label for="candidate-select">Select Candidate Profile</label>
-          <select id="candidate-select" disabled>
-            <option value="">Loading profiles...</option>
-          </select>
+  <!-- MAIN DASHBOARD -->
+  <div id="app-dashboard" class="app-dashboard hidden">
+
+    <header>
+      <div class="header-inner">
+        <div class="brand">
+          <div class="brand-mark">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h1>AI Interview Agent</h1>
+            <span>31-Day Cohort Platform</span>
+          </div>
         </div>
-        <div class="form-group">
-          <label for="session-id-input">Session ID</label>
-          <input type="text" id="session-id-input" value="session-abc">
-        </div>
-        <button id="start-btn" class="primary-btn" disabled>Start Interview</button>
+        <div id="connection-badge" class="badge">Checking connection...</div>
       </div>
+    </header>
 
-      <div class="sidebar-card">
-        <h2><span class="card-icon">📊</span> Interview Progress</h2>
-
-        <div class="progress-item">
-          <div class="progress-labels">
-            <span>Questions Asked</span>
-            <span id="questions-count-label">0 / 8</span>
+    <main>
+      <div class="sidebar">
+        <div class="sidebar-card glass-card">
+          <h2><span class="card-icon">📋</span> Setup Session</h2>
+          <div class="form-group">
+            <label for="candidate-select">Select Candidate Profile</label>
+            <div class="select-wrapper">
+              <select id="candidate-select" class="select-native" disabled tabindex="-1" aria-hidden="true">
+                <option value="">Loading profiles...</option>
+              </select>
+              <div id="custom-select" class="custom-select" role="listbox" aria-label="Select Candidate Profile">
+                <button type="button" id="custom-select-trigger" class="custom-select-trigger disabled" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="placeholder">Loading profiles...</span>
+                </button>
+                <svg class="custom-select-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                <div id="custom-select-options" class="custom-select-options" role="presentation"></div>
+              </div>
+            </div>
           </div>
-          <div class="progress-bar-outer">
-            <div id="questions-progress-bar" class="progress-bar-inner" style="width: 0%"></div>
+          <div class="form-group">
+            <label for="session-id-input">Session ID</label>
+            <input type="text" id="session-id-input" value="session-abc">
           </div>
+          <button id="start-btn" class="primary-btn" disabled>Start Interview</button>
         </div>
 
-        <div class="progress-item">
-          <div class="progress-labels">
-            <span>Curriculum Days Covered</span>
-            <span id="days-count-label">0 / 4</span>
+        <div class="sidebar-card glass-card">
+          <h2><span class="card-icon">📊</span> Interview Progress</h2>
+          <div class="progress-item">
+            <div class="progress-labels">
+              <span>Questions Asked</span>
+              <span id="questions-count-label">0 / 8</span>
+            </div>
+            <div class="progress-bar-outer glow" id="questions-bar-outer">
+              <div id="questions-progress-bar" class="progress-bar-inner" style="width: 0%"></div>
+            </div>
           </div>
-          <div class="progress-bar-outer">
-            <div id="days-progress-bar" class="progress-bar-inner" style="width: 0%"></div>
+          <div class="progress-item">
+            <div class="progress-labels">
+              <span>Curriculum Days Covered</span>
+              <span id="days-count-label">0 / 4</span>
+            </div>
+            <div class="progress-bar-outer glow" id="days-bar-outer">
+              <div id="days-progress-bar" class="progress-bar-inner" style="width: 0%"></div>
+            </div>
+            <div class="tag-container" id="days-tags-container"></div>
           </div>
-          <div class="tag-container" id="days-tags-container"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="chat-container">
-      <div id="chat-header-bar" class="chat-header hidden">
-        <div class="candidate-avatar" id="avatar-initials">?</div>
-        <div class="candidate-info">
-          <h3 id="info-name">Candidate Name</h3>
-          <p id="info-role">Candidate Role & Exp</p>
-        </div>
-      </div>
-
-      <div id="welcome-screen" class="welcome-screen">
-        <div class="welcome-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-        </div>
-        <h2>Technical Interview Portal</h2>
-        <p>This agent conducts a custom multi-turn technical interview based on the candidate's learning history throughout the 31-day AI Cohort.</p>
-        <div class="welcome-features">
-          <div class="welcome-feature"><span class="welcome-feature-dot"></span> Adaptive questioning</div>
-          <div class="welcome-feature"><span class="welcome-feature-dot"></span> Curriculum-aware</div>
-          <div class="welcome-feature"><span class="welcome-feature-dot"></span> Instant feedback</div>
-        </div>
-        <p class="badge" style="max-width: fit-content;">Select a profile on the left to begin</p>
-      </div>
-
-      <div id="chat-messages" class="chat-messages hidden"></div>
-
-      <div id="feedback-overlay" class="feedback-overlay hidden">
-        <div class="feedback-header">
-          <h2>Evaluation & Feedback Report</h2>
-          <p>The interview is completed. Below is the grading summary.</p>
-        </div>
-        <div class="feedback-summary" id="report-summary"></div>
-        <div class="feedback-grid">
-          <div class="feedback-section strengths">
-            <h3>✅ Key Strengths</h3>
-            <ul class="feedback-list" id="report-strengths"></ul>
-          </div>
-          <div class="feedback-section gaps">
-            <h3>⚠️ Knowledge Gaps</h3>
-            <ul class="feedback-list" id="report-gaps"></ul>
-          </div>
-        </div>
-        <div class="feedback-section next" style="margin-top: 0;">
-          <h3>🚀 Recommended Next Steps</h3>
-          <ul class="feedback-list" id="report-next"></ul>
         </div>
       </div>
 
-      <div id="input-area" class="chat-input-area hidden">
-        <input type="text" id="chat-input" placeholder="Type your answer here..." autocomplete="off">
-        <button id="send-btn" class="primary-btn">Submit Answer</button>
-      </div>
-    </div>
-  </main>
+      <div class="chat-container glass-card">
+        <div id="chat-header-bar" class="chat-header hidden">
+          <div class="candidate-avatar" id="avatar-initials">?</div>
+          <div class="candidate-info">
+            <h3 id="info-name">Candidate Name</h3>
+            <p id="info-role">Candidate Role & Exp</p>
+          </div>
+        </div>
 
-  <footer>
-    <p>Powered by <span>AI Cohort Interview Agent</span> · Built for hackathon demo</p>
-  </footer>
+        <div id="welcome-screen" class="welcome-screen">
+          <div class="welcome-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <h2>Technical Interview Portal</h2>
+          <p>This agent conducts a custom multi-turn technical interview based on the candidate's learning history throughout the 31-day AI Cohort.</p>
+          <div class="welcome-features">
+            <div class="welcome-feature"><span class="welcome-feature-dot"></span> Adaptive questioning</div>
+            <div class="welcome-feature"><span class="welcome-feature-dot"></span> Curriculum-aware</div>
+            <div class="welcome-feature"><span class="welcome-feature-dot"></span> Instant feedback</div>
+          </div>
+          <p class="badge" style="max-width: fit-content; margin-top: 0.5rem;">Select a profile on the left to begin</p>
+        </div>
+
+        <div id="chat-messages" class="chat-messages hidden"></div>
+
+        <div id="feedback-overlay" class="feedback-overlay hidden">
+          <div class="feedback-header">
+            <h2>Evaluation & Feedback Report</h2>
+            <p>The interview is completed. Below is the grading summary.</p>
+          </div>
+          <div class="feedback-summary" id="report-summary"></div>
+          <div class="feedback-grid">
+            <div class="feedback-section strengths">
+              <h3>✅ Key Strengths</h3>
+              <ul class="feedback-list" id="report-strengths"></ul>
+            </div>
+            <div class="feedback-section gaps">
+              <h3>⚠️ Knowledge Gaps</h3>
+              <ul class="feedback-list" id="report-gaps"></ul>
+            </div>
+          </div>
+          <div class="feedback-section next">
+            <h3>🚀 Recommended Next Steps</h3>
+            <ul class="feedback-list" id="report-next"></ul>
+          </div>
+        </div>
+
+        <div id="input-area" class="chat-input-area hidden">
+          <input type="text" id="chat-input" placeholder="Type your answer here..." autocomplete="off">
+          <button id="send-btn" class="primary-btn">Submit Answer</button>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>Powered by <span>AI Cohort Interview Agent</span> · Built for hackathon demo</p>
+    </footer>
+  </div>
 
   <script>
-    // Constants
     const API_BASE = window.location.origin;
 
     // DOM Elements
+    const landingPage = document.getElementById('landing-page');
+    const appDashboard = document.getElementById('app-dashboard');
+    const launchBtn = document.getElementById('launch-btn');
     const connectionBadge = document.getElementById('connection-badge');
     const candidateSelect = document.getElementById('candidate-select');
     const sessionIdInput = document.getElementById('session-id-input');
     const startBtn = document.getElementById('start-btn');
-    
+
+    const customSelect = document.getElementById('custom-select');
+    const customSelectTrigger = document.getElementById('custom-select-trigger');
+    const customSelectOptions = document.getElementById('custom-select-options');
+
     const welcomeScreen = document.getElementById('welcome-screen');
     const chatHeaderBar = document.getElementById('chat-header-bar');
     const chatMessages = document.getElementById('chat-messages');
     const feedbackOverlay = document.getElementById('feedback-overlay');
     const inputArea = document.getElementById('input-area');
-    
+
     const chatInput = document.getElementById('chat-input');
     const sendBtn = document.getElementById('send-btn');
-    
+
     const avatarInitials = document.getElementById('avatar-initials');
     const infoName = document.getElementById('info-name');
     const infoRole = document.getElementById('info-role');
@@ -1149,17 +1417,115 @@
     const daysProgressBar = document.getElementById('days-progress-bar');
     const daysTagsContainer = document.getElementById('days-tags-container');
 
-    // State Variables
     let candidatesList = [];
     let selectedCandidate = null;
     let sessionId = "";
     let questionCount = 0;
     let daysCovered = new Set();
+    let dashboardReady = false;
 
-    // 1. Initial Connection Checks and Data Fetching
+    // ── Landing → Dashboard transition ──
+    launchBtn.addEventListener('click', () => {
+      landingPage.classList.add('exit');
+      setTimeout(() => {
+        landingPage.classList.add('hidden');
+        appDashboard.classList.remove('hidden');
+        requestAnimationFrame(() => {
+          appDashboard.classList.add('visible');
+          animateProgressBarsOnMount();
+        });
+        if (!dashboardReady) {
+          dashboardReady = true;
+          initApp();
+        }
+      }, 650);
+    });
+
+    function animateProgressBarsOnMount() {
+      [questionsProgressBar, daysProgressBar].forEach(bar => {
+        bar.classList.add('mount-animate');
+        bar.style.setProperty('--target-width', '0%');
+        setTimeout(() => bar.classList.remove('mount-animate'), 1300);
+      });
+    }
+
+    // ── Custom select (syncs with native #candidate-select) ──
+    function syncCustomSelectFromNative() {
+      const opts = Array.from(candidateSelect.options);
+      customSelectOptions.innerHTML = '';
+      opts.forEach(opt => {
+        const div = document.createElement('div');
+        div.className = 'custom-select-option' + (opt.selected ? ' selected' : '');
+        div.dataset.value = opt.value;
+        div.textContent = opt.textContent;
+        div.setAttribute('role', 'option');
+        div.addEventListener('click', () => selectCustomOption(opt.value));
+        customSelectOptions.appendChild(div);
+      });
+      updateCustomSelectTrigger();
+    }
+
+    function updateCustomSelectTrigger() {
+      const selected = candidateSelect.options[candidateSelect.selectedIndex];
+      const label = customSelectTrigger.querySelector('span') || document.createElement('span');
+      if (!customSelectTrigger.querySelector('span')) customSelectTrigger.appendChild(label);
+
+      if (selected && selected.value !== '') {
+        label.textContent = selected.textContent;
+        label.classList.remove('placeholder');
+      } else {
+        label.textContent = selected ? selected.textContent : '-- Choose Candidate --';
+        label.classList.add('placeholder');
+      }
+
+      customSelectOptions.querySelectorAll('.custom-select-option').forEach(el => {
+        el.classList.toggle('selected', el.dataset.value === candidateSelect.value);
+      });
+    }
+
+    function selectCustomOption(value) {
+      candidateSelect.value = value;
+      candidateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      closeCustomSelect();
+    }
+
+    function openCustomSelect() {
+      if (candidateSelect.disabled) return;
+      customSelect.classList.add('open');
+      customSelectTrigger.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeCustomSelect() {
+      customSelect.classList.remove('open');
+      customSelectTrigger.setAttribute('aria-expanded', 'false');
+    }
+
+    customSelectTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (candidateSelect.disabled) return;
+      customSelect.classList.contains('open') ? closeCustomSelect() : openCustomSelect();
+    });
+
+    document.addEventListener('click', () => closeCustomSelect());
+
+    customSelectTrigger.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        customSelect.classList.contains('open') ? closeCustomSelect() : openCustomSelect();
+      }
+      if (e.key === 'Escape') closeCustomSelect();
+    });
+
+    function setCustomSelectDisabled(disabled) {
+      candidateSelect.disabled = disabled;
+      customSelectTrigger.classList.toggle('disabled', disabled);
+      customSelectTrigger.tabIndex = disabled ? -1 : 0;
+      if (disabled) closeCustomSelect();
+    }
+
+    // ── API & interview logic (unchanged) ──
     async function initApp() {
       try {
-        // Fetch candidates list
         const res = await fetch(`${API_BASE}/api/candidates`);
         if (res.ok) {
           candidatesList = await res.json();
@@ -1167,7 +1533,6 @@
           connectionBadge.style.backgroundColor = "rgba(16, 185, 129, 0.15)";
           connectionBadge.style.borderColor = "rgba(16, 185, 129, 0.3)";
           connectionBadge.style.color = "#a7f3d0";
-          
           populateCandidatesDropdown();
         } else {
           showConnectionError();
@@ -1194,78 +1559,63 @@
         option.textContent = `${member.name} (${member.jobRole})`;
         candidateSelect.appendChild(option);
       });
-      candidateSelect.disabled = false;
+      setCustomSelectDisabled(false);
+      syncCustomSelectFromNative();
     }
 
-    // Dropdown change listener
     candidateSelect.addEventListener('change', () => {
       const idx = candidateSelect.value;
       if (idx !== "") {
         selectedCandidate = candidatesList[idx];
         startBtn.disabled = false;
-        
-        // Generate random session id to avoid conflicts
         sessionIdInput.value = `session-${selectedCandidate.member.id}-${Math.floor(Math.random() * 1000)}`;
       } else {
         selectedCandidate = null;
         startBtn.disabled = true;
       }
+      updateCustomSelectTrigger();
     });
 
-    // 2. Start Interview
     startBtn.addEventListener('click', async () => {
       if (!selectedCandidate) return;
-      
+
       sessionId = sessionIdInput.value.trim() || `session-def-${Date.now()}`;
-      
-      // Update UI elements to show chat layout
+
       welcomeScreen.classList.add('hidden');
       chatHeaderBar.classList.remove('hidden');
       chatMessages.classList.remove('hidden');
       inputArea.classList.remove('hidden');
       feedbackOverlay.classList.add('hidden');
-      
-      // Lock settings sidebar controls
-      candidateSelect.disabled = true;
+
+      setCustomSelectDisabled(true);
       sessionIdInput.disabled = true;
       startBtn.disabled = true;
-      
-      // Reset counters and stats
+
       questionCount = 0;
       daysCovered.clear();
       updateProgressUI();
       chatMessages.innerHTML = '';
-      
-      // Render Candidate Avatar details
+
       const member = selectedCandidate.member || {};
       infoName.textContent = member.name;
       infoRole.textContent = `${member.jobRole} · ${member.yearsExperience} yrs experience`;
       avatarInitials.textContent = member.name.split(' ').map(n => n[0]).join('');
-      
+
       appendLoader();
 
-      // Call Start Endpoint
       try {
         const res = await fetch(`${API_BASE}/api/interview`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: sessionId,
-            candidate: selectedCandidate
-          })
+          body: JSON.stringify({ sessionId: sessionId, candidate: selectedCandidate })
         });
-        
+
         removeLoader();
-        
+
         if (res.ok) {
           const data = await res.json();
           appendMessage(data.reply, 'interviewer');
-          
-          // The first turn increments questions count
           questionCount = 1;
-          // Extract target day if possible
-          // Note: Local mock uses deterministic questions covering different days
-          // We can guess day based on question content or just default first to Day 7
           daysCovered.add(7);
           updateProgressUI();
         } else {
@@ -1277,42 +1627,32 @@
       }
     });
 
-    // 3. Conversational Message Handling
     async function submitAnswer() {
       const text = chatInput.value.trim();
       if (!text) return;
-      
-      // Append candidate message
+
       appendMessage(text, 'candidate');
       chatInput.value = '';
-      
       appendLoader();
-      
+
       try {
         const res = await fetch(`${API_BASE}/api/interview`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: sessionId,
-            message: text
-          })
+          body: JSON.stringify({ sessionId: sessionId, message: text })
         });
-        
+
         removeLoader();
-        
+
         if (res.ok) {
           const data = await res.json();
-          
+
           if (data.done) {
-            // End Interview and render Feedback Report
             appendMessage("Interview completed. Loading detailed feedback...", 'interviewer');
             setTimeout(() => renderFeedback(data.feedback), 1500);
           } else {
-            // Keep going
             appendMessage(data.reply, 'interviewer');
-            
             questionCount += 1;
-            // Add a new day to coverage periodically to simulate progress visually
             const daysMock = [8, 10, 12, 16, 22, 23, 28];
             if (questionCount <= 8) {
               daysCovered.add(daysMock[questionCount - 2] || 12);
@@ -1333,7 +1673,6 @@
       if (e.key === 'Enter') submitAnswer();
     });
 
-    // 4. UI Rendering Utilities
     function appendMessage(text, sender) {
       const msgDiv = document.createElement('div');
       msgDiv.classList.add('message', sender);
@@ -1363,18 +1702,15 @@
     }
 
     function updateProgressUI() {
-      // Questions Progress
       questionsCountLabel.textContent = `${questionCount} / 8`;
       const qPercent = Math.min(100, (questionCount / 8) * 100);
       questionsProgressBar.style.width = `${qPercent}%`;
 
-      // Days Progress
       const uniqueDays = daysCovered.size;
       daysCountLabel.textContent = `${uniqueDays} / 4`;
       const dPercent = Math.min(100, (uniqueDays / 4) * 100);
       daysProgressBar.style.width = `${dPercent}%`;
 
-      // Render Days Tags
       daysTagsContainer.innerHTML = '';
       daysCovered.forEach(day => {
         const span = document.createElement('span');
@@ -1388,9 +1724,9 @@
       chatMessages.classList.add('hidden');
       inputArea.classList.add('hidden');
       feedbackOverlay.classList.remove('hidden');
-      
+
       document.getElementById('report-summary').textContent = feedback.summary || "No summary provided.";
-      
+
       const strengthsUl = document.getElementById('report-strengths');
       strengthsUl.innerHTML = '';
       (feedback.strengths || []).forEach(str => {
@@ -1414,14 +1750,10 @@
         li.textContent = step;
         nextUl.appendChild(li);
       });
-      
-      // Unlock candidate selector to allow running a new session
-      candidateSelect.disabled = false;
+
+      setCustomSelectDisabled(false);
       sessionIdInput.disabled = false;
     }
-
-    // Run Initialization
-    initApp();
   </script>
 </body>
 </html>
