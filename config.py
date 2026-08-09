@@ -22,11 +22,11 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 # If GEMINI_API_KEY is present, default to gemini-2.5-flash
 # If ANTHROPIC_API_KEY is present, default to claude-3-5-sonnet-20241022
 if GEMINI_API_KEY:
-    DEFAULT_MODEL = "gemini-2.5-flash"
+    DEFAULT_MODEL = "gemini-3.5-flash"
 elif ANTHROPIC_API_KEY:
     DEFAULT_MODEL = "claude-3-5-sonnet-20241022"
 else:
-    DEFAULT_MODEL = "gemini-2.5-flash"  # Fallback
+    DEFAULT_MODEL = "gemini-3.5-flash"  # Fallback
 
 MODEL_NAME = os.getenv("MODEL_NAME", DEFAULT_MODEL)
 

@@ -468,20 +468,12 @@ Always prioritize realistic interviewing over scripted questioning.
             json_mode=True
         )
 
-        # Remove accidental Markdown code fences
+        # Robustly extract JSON block between first '{' and last '}'
         raw_res = raw_res.strip()
-
-        if raw_res.startswith("```"):
-            lines = raw_res.split("\n")
-
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-
-            raw_res = "\n".join(lines).strip()
-
+        import re
+        json_match = re.search(r'\{.*\}', raw_res, re.DOTALL)
+        if json_match:
+            raw_res = json_match.group(0)
         result = json.loads(raw_res)
 
         # -----------------------------------------------------
@@ -837,20 +829,12 @@ The final report should help the candidate understand:
             json_mode=True
         )
 
+        # Robustly extract JSON block between first '{' and last '}'
         raw_res = raw_res.strip()
-
-        # Remove accidental Markdown code fences
-        if raw_res.startswith("```"):
-            lines = raw_res.split("\n")
-
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-
-            raw_res = "\n".join(lines).strip()
-
+        import re
+        json_match = re.search(r'\{.*\}', raw_res, re.DOTALL)
+        if json_match:
+            raw_res = json_match.group(0)
         result = json.loads(raw_res)
 
         # -----------------------------------------------------
