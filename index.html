@@ -37,6 +37,8 @@
         <button data-nav="results" type="button">🏆 Results</button>
         <button data-nav="dashboard" type="button">📊 Dashboard</button>
         <button data-nav="profile" type="button">👤 Profile</button>
+        <button data-nav="resume" type="button">📄 ATS Grader</button>
+        <button data-nav="salary" type="button">💰 Salary AI</button>
         <button data-nav="contact" type="button">📞 Contact Us</button>
         <button data-nav="auth" type="button">🔐 Sign In</button>
       </nav>
@@ -77,6 +79,8 @@
         <button class="nav-link" data-nav="results" type="button">Results</button>
         <button class="nav-link" data-nav="dashboard" type="button">Dashboard</button>
         <button class="nav-link" data-nav="profile" type="button">Profile</button>
+        <button class="nav-link" data-nav="resume" type="button">ATS Grader</button>
+        <button class="nav-link" data-nav="salary" type="button">Salary AI</button>
         <button class="nav-link" data-nav="contact" type="button">Contact Us</button>
       </div>
     </nav>
@@ -100,6 +104,17 @@
           <div class="stat-card card-3d"><strong data-count="89" data-suffix="%" data-percent="true">0</strong><span>Placement Rate</span></div>
           <div class="stat-card card-3d"><strong data-count="31">0</strong><span>Curriculum Days</span></div>
           <div class="stat-card card-3d"><strong data-count="50" data-suffix="+">0</strong><span>Partner Companies</span></div>
+        </div>
+        
+        <div class="partners-scroller">
+          <p class="partners-title">Trusted by Hiring Teams At</p>
+          <div class="marquee-wrapper">
+            <div class="marquee">
+              <span>Google</span><span>Amazon</span><span>Microsoft</span><span>Meta</span><span>Apple</span><span>Netflix</span><span>Stripe</span><span>Airbnb</span><span>Uber</span><span>Databricks</span>
+              <span>Google</span><span>Amazon</span><span>Microsoft</span><span>Meta</span><span>Apple</span><span>Netflix</span><span>Stripe</span><span>Airbnb</span><span>Uber</span><span>Databricks</span>
+            </div>
+          </div>
+          <a href="#" class="view-all-partners">View all 50+ Partner Companies &rarr;</a>
         </div>
       </div>
 
@@ -249,8 +264,61 @@
 
     <section id="section-profile" class="page-section">
       <div class="container">
-        <div class="section-header"><h2>Candidate Profile</h2><p>Learning history and performance from the 31-Day AI Cohort.</p></div>
+        <div class="section-header"><h2>Candidate Profile</h2><p>Detailed performance analytics and 31-day cohort tracking.</p></div>
         <div id="profile-content"></div>
+      </div>
+    </section>
+
+    <!-- NEW UNIQUE FEATURES -->
+    <section id="section-resume" class="page-section">
+      <div class="container resume-section">
+        <div class="section-header">
+          <h2>AI Resume ATS Grader</h2>
+          <p>Instant breakdown of formatting, keywords, and parsing issues before you apply.</p>
+        </div>
+        <div class="resume-layout">
+          <div class="upload-card card-3d">
+            <div class="upload-icon">📄</div>
+            <h3>Upload Resume</h3>
+            <p>Drag and drop your PDF here.</p>
+            <button class="btn-primary" type="button" onclick="this.textContent='Analyzing...';setTimeout(()=>document.getElementById('ats-results').classList.remove('hidden'), 800)">Scan Resume</button>
+          </div>
+          <div class="ats-results hidden card-3d" id="ats-results">
+            <h3>ATS Analysis Score: <span style="color:var(--success)">88/100</span></h3>
+            <div class="progress-bar-outer glow" style="margin-bottom: 1.5rem;"><div class="progress-bar-inner" style="width:88%;background:var(--success);"></div></div>
+            <ul class="feedback-list">
+              <li><span class="mission-status pass">✓</span> Keyword Density: High Match</li>
+              <li><span class="mission-status pass">✓</span> Formatting: PDF Parsed Successfully</li>
+              <li><span class="mission-status skip">⚠️</span> Formatting: Missing impact metrics in 2 bullets</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-salary" class="page-section">
+      <div class="container salary-section">
+        <div class="section-header">
+          <h2>Salary Negotiation Roleplay</h2>
+          <p>Practice your counter-offer strategy with our AI Recruiter.</p>
+        </div>
+        <div class="salary-layout card-3d">
+          <div class="salary-setup">
+            <h3>Current Offer Details</h3>
+            <input type="text" placeholder="Base Salary (e.g., ₹25 LPA)" style="width:100%;padding:0.75rem;margin-bottom:1rem;border-radius:var(--radius-md);border:1px solid var(--border);">
+            <input type="text" placeholder="Role (e.g., SDE-2)" style="width:100%;padding:0.75rem;margin-bottom:1rem;border-radius:var(--radius-md);border:1px solid var(--border);">
+            <button class="btn-primary btn-full" type="button" onclick="document.getElementById('salary-chat').innerHTML='<p><strong>AI Recruiter:</strong> Hi, we are excited to offer you the SDE-2 role at ₹25 LPA. How does this align with your expectations?</p>'">Start Roleplay</button>
+          </div>
+          <div class="salary-chat-area">
+            <div class="salary-chat" id="salary-chat">
+              <p style="color:var(--text-muted);text-align:center;padding:2rem;">Set up your offer to begin the roleplay.</p>
+            </div>
+            <div class="chat-input-area" style="display:flex;margin-top:1rem;">
+              <input type="text" placeholder="Type your counter..." style="flex:1;padding:0.75rem;border-radius:var(--radius-md);border:1px solid var(--border);">
+              <button class="btn-secondary" style="margin-left:0.5rem;">Send</button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 

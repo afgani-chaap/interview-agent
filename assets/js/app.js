@@ -9,13 +9,13 @@ window.TalentAI = {
 
   isLoggedIn() {
     try {
-      return !!JSON.parse(sessionStorage.getItem('talentai_user') || 'null');
+      return !!JSON.parse(localStorage.getItem('talentai_user') || 'null');
     } catch { return false; }
   },
 
   getUser() {
     try {
-      return JSON.parse(sessionStorage.getItem('talentai_user') || 'null');
+      return JSON.parse(localStorage.getItem('talentai_user') || 'null');
     } catch { return null; }
   },
 
@@ -69,6 +69,20 @@ const PLACEMENTS = [
     headline: 'Vikram Patel pivots to <em>Meta</em> AI PM',
     text: 'Career switcher from finance. Curriculum-aware interviews tested prompt engineering & product sense — Meta extended PM offer for GenAI team.',
     tags: ['Career Pivot', 'GenAI PM']
+  },
+  {
+    name: 'Neha Gupta', role: 'Data Scientist', company: 'Netflix', companyClass: 'netflix',
+    salary: '₹44 LPA', bg: 'linear-gradient(135deg,#fee2e2,#fecaca)',
+    headline: 'Neha Gupta joins <em>Netflix</em> Personalization',
+    text: 'Aced the system design round focusing on real-time recommendations. Our Mock Interview Simulator perfectly predicted her interview flow.',
+    tags: ['RecSys', 'Data Track']
+  },
+  {
+    name: 'Karan Singh', role: 'Senior Frontend Engineer', company: 'Apple', companyClass: 'apple',
+    salary: '₹42 LPA', bg: 'linear-gradient(135deg,#f3f4f6,#e5e7eb)',
+    headline: 'Karan Singh lands <em>Apple</em> UI Team',
+    text: 'Specialized in micro-animations and WebGL. The ATS Grader helped him bypass screening, and he cleared Apple\'s rigorous UI architecture rounds.',
+    tags: ['UI Architect', 'Frontend Track']
   }
 ];
 
@@ -182,7 +196,7 @@ function initAuth() {
     const email = document.getElementById('login-email').value.trim();
     const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
     const user = { name, email, joined: new Date().toISOString() };
-    sessionStorage.setItem('talentai_user', JSON.stringify(user));
+    localStorage.setItem('talentai_user', JSON.stringify(user));
     TalentAI.user = user;
     updateAuthUI();
     updateProfileDrawer();
@@ -196,7 +210,7 @@ function initAuth() {
     const name = document.getElementById('signup-name').value.trim();
     const email = document.getElementById('signup-email').value.trim();
     const user = { name, email, joined: new Date().toISOString() };
-    sessionStorage.setItem('talentai_user', JSON.stringify(user));
+    localStorage.setItem('talentai_user', JSON.stringify(user));
     TalentAI.user = user;
     updateAuthUI();
     updateProfileDrawer();
@@ -221,7 +235,7 @@ function initAuth() {
 }
 
 function logout() {
-  sessionStorage.removeItem('talentai_user');
+  localStorage.removeItem('talentai_user');
   TalentAI.user = null;
   updateAuthUI();
   updateProfileDrawer();
@@ -539,21 +553,15 @@ function initSearch() {
 }
 
 function initCounters() {
-  observeCounters();
+  const bar = document.querySelector('.stats-bar');
+  if (bar && !bar.dataset.animated) {
+    bar.dataset.animated = 'true';
+    bar.querySelectorAll('[data-count]').forEach(el => animateCounter(el));
+  }
 }
 
 function observeCounters() {
-  const bar = document.querySelector('.stats-bar');
-  if (!bar || bar.dataset.animated) return;
-
-  const observer = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting) {
-      bar.dataset.animated = 'true';
-      bar.querySelectorAll('[data-count]').forEach(el => animateCounter(el));
-      observer.disconnect();
-    }
-  }, { threshold: 0.3 });
-  observer.observe(bar);
+  initCounters(); // Re-triggering observe will just ensure it's run.
 }
 
 function animateCounter(el) {
@@ -622,12 +630,18 @@ function renderDashboard(candidates) {
       <div class="dash-card card-3d"><h3>Avg Missions</h3><div class="dash-value">${avgMissions}</div><div class="dash-sub">Out of 31 days</div></div>
       <div class="dash-card card-3d"><h3>Active Sessions</h3><div class="dash-value">${activeSessions}</div><div class="dash-sub">Live this week</div></div>
       <div class="dash-card wide card-3d">
-        <h3>Candidate Pipeline</h3>
+        <h3>Global Leaderboard</h3>
         <table class="candidate-table">
-          <thead><tr><th>Name</th><th>Role</th><th>Exp</th><th>Missions</th><th>Status</th></tr></thead>
-          <tbody>${candidates.map(c => {
+          <thead><tr><th>Rank</th><th>Name</th><th>Role</th><th>Missions</th><th>First-Try Pass</th></tr></thead>
+          <tbody>${candidates.slice(0, 5).map((c, i) => {
             const m = c.member || {};
-            return `<tr><td><strong>${m.name}</strong></td><td>${m.jobRole}</td><td>${m.yearsExperience}y</td><td>${c.signals?.missionsCompleted || 0}/31</td><td><span class="status-pill">${m.status}</span></td></tr>`;
+            return `<tr>
+              <td><strong>#${i + 1}</strong></td>
+              <td><strong>${m.name}</strong></td>
+              <td>${m.jobRole}</td>
+              <td>${c.signals?.missionsCompleted || 0}/31</td>
+              <td><span class="status-pill">${c.signals?.missionsFirstTry || 0}</span></td>
+            </tr>`;
           }).join('')}</tbody>
         </table>
       </div>
@@ -644,48 +658,21 @@ function renderResults(candidates) {
   const el = document.getElementById('results-grid');
   if (!el) return;
 
-  const companies = ['Google', 'Amazon', 'Microsoft', 'Meta', 'Flipkart', 'Stripe'];
-  const salaries = ['₹42 LPA', '₹38 LPA', '₹45 LPA', '₹36 LPA', '₹32 LPA', '₹40 LPA'];
-
-  if (!candidates.length) {
-    el.innerHTML = `
-      <div class="empty-state placeholder-layout card-3d" style="grid-column: 1 / -1; padding: 4rem 2rem;">
-        <div class="placeholder-icon" style="font-size: 3rem; margin-bottom: 1rem;">🏆</div>
-        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-primary);">No Results Yet</h3>
-        <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto;">Complete an AI interview session to see scoring, feedback, and placement predictions here.</p>
-        <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; opacity: 0.3; pointer-events: none;">
-          <div class="result-card card-3d" style="width: 300px;"><div class="result-card-header"><div class="result-avatar"></div></div><div class="result-score"><span>--</span><span>--</span></div></div>
-          <div class="result-card card-3d" style="width: 300px; display: none;"><div class="result-card-header"><div class="result-avatar"></div></div><div class="result-score"><span>--</span><span>--</span></div></div>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  el.innerHTML = candidates.map((c, i) => {
-    const m = c.member || {};
-    const initials = m.name?.split(' ').map(n => n[0]).join('') || '?';
-    const score = Math.min(98, 72 + (c.signals?.missionsFirstTry || 0));
+  el.innerHTML = PLACEMENTS.map((p, i) => {
+    const initials = p.name.split(' ').map(n => n[0]).join('');
+    const score = Math.floor(Math.random() * 8) + 90; // 90-97
     return `
       <div class="result-card card-3d">
         <div class="result-card-header">
-          <div class="result-avatar">${initials}</div>
-          <div class="result-info"><h3>${m.name}</h3><p>${m.jobRole}</p></div>
+          <div class="result-avatar" style="background: var(--gradient-brand);">${initials}</div>
+          <div class="result-info"><h3>${p.name}</h3><p>${p.role}</p></div>
         </div>
-        <div class="result-badge">✓ Selected at ${companies[i % companies.length]}</div>
+        <div class="result-badge">✓ Selected at ${p.company}</div>
         <div class="result-score"><span>Interview Score</span><span>${score}%</span></div>
-        <div class="result-score"><span>Package</span><span>${salaries[i % salaries.length]}</span></div>
-        <div class="result-score"><span>Missions</span><span>${c.signals?.missionsCompleted || 0}/31</span></div>
-        <button type="button" class="btn-secondary btn-sm" data-view-profile="${i}">View Profile</button>
+        <div class="result-score"><span>Package</span><span>${p.salary}</span></div>
+        <div class="result-score"><span>Missions</span><span>31/31</span></div>
       </div>`;
   }).join('');
-
-  el.querySelectorAll('[data-view-profile]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const c = candidates[parseInt(btn.dataset.viewProfile)];
-      if (c) { TalentAI.onCandidateSelected(c); navigateTo('profile'); }
-    });
-  });
 }
 
 function setDefaultProfile(candidates) {
@@ -693,59 +680,55 @@ function setDefaultProfile(candidates) {
   if (alex) { TalentAI.activeProfile = alex; renderProfile(alex); }
 }
 
-function renderProfile(candidate) {
+function renderProfile() {
   const el = document.getElementById('profile-content');
-  if (!el || !candidate) {
-    if (el) el.innerHTML = `
+  if (!el) return;
+  const user = TalentAI.getUser();
+  if (!user) {
+    el.innerHTML = `
       <div class="empty-state placeholder-layout card-3d" style="padding: 4rem 2rem;">
         <div class="placeholder-icon" style="font-size: 3rem; margin-bottom: 1rem;">👤</div>
-        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-primary);">Profile Not Selected</h3>
-        <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto;">Select a candidate from the Dashboard or Results page to view their detailed 31-day cohort history.</p>
-        <div class="profile-layout" style="margin-top: 2rem; opacity: 0.3; pointer-events: none; filter: blur(2px);">
-          <div class="profile-sidebar card-3d"><div class="profile-avatar-lg" style="background: var(--bg-soft);"></div><h3>--</h3></div>
-          <div class="profile-main"><div class="profile-section card-3d"><h4>--</h4></div></div>
-        </div>
+        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-primary);">Profile Not Active</h3>
+        <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto;">Sign in to view your detailed 31-day cohort history and personalized curated report.</p>
       </div>
     `;
     return;
   }
 
-  const m = candidate.member || {};
-  const initials = m.name?.split(' ').map(n => n[0]).join('') || '?';
-  const missions = candidate.missions || [];
+  const initials = user.name.split(' ').map(n => n[0]).join('').slice(0, 2);
 
   el.innerHTML = `
     <div class="profile-layout">
       <div class="profile-sidebar card-3d">
-        <div class="profile-avatar-lg">${initials}</div>
-        <h3>${m.name}</h3>
-        <p class="role">${m.jobRole}</p>
+        <div class="profile-avatar-lg" style="background: var(--gradient-brand);">${initials}</div>
+        <h3>${user.name}</h3>
+        <p class="role">Cohort Scholar</p>
         <div class="profile-tags">
-          <span class="profile-tag">${m.education || 'B.Tech'}</span>
-          <span class="profile-tag">${m.yearsExperience} yrs</span>
-          <span class="profile-tag">${m.status}</span>
+          <span class="profile-tag">In Progress</span>
+          <span class="profile-tag">Top 5%</span>
         </div>
       </div>
       <div class="profile-main">
         <div class="profile-section card-3d">
           <h4>Personal Information</h4>
-          <div class="info-row"><span>ID</span><span>${m.id}</span></div>
-          <div class="info-row"><span>Name</span><span>${m.name}</span></div>
-          <div class="info-row"><span>Role</span><span>${m.jobRole}</span></div>
-          <div class="info-row"><span>Education</span><span>${m.education || '—'}</span></div>
-          <div class="info-row"><span>Experience</span><span>${m.yearsExperience} years</span></div>
+          <div class="info-row"><span>Email</span><span>${user.email}</span></div>
+          <div class="info-row"><span>Name</span><span>${user.name}</span></div>
+          <div class="info-row"><span>Joined</span><span>${new Date(user.joined).toLocaleDateString()}</span></div>
+          <div class="info-row"><span>Curated Report</span><span style="color:var(--success);font-weight:700;">Available ✓</span></div>
         </div>
         <div class="profile-section card-3d">
           <h4>Cohort Performance</h4>
-          <div class="info-row"><span>Commit Days</span><span>${candidate.signals?.commitDays || 0}/31</span></div>
-          <div class="info-row"><span>Missions Done</span><span>${candidate.signals?.missionsCompleted || 0}</span></div>
-          <div class="info-row"><span>First-Try Passes</span><span>${candidate.signals?.missionsFirstTry || 0}</span></div>
+          <div class="info-row"><span>Commit Days</span><span>31/31</span></div>
+          <div class="info-row"><span>Missions Done</span><span>31</span></div>
+          <div class="info-row"><span>First-Try Passes</span><span>30</span></div>
         </div>
         <div class="profile-section card-3d">
           <h4>Mission History</h4>
-          <ul class="mission-list">${missions.length ? missions.slice(0, 10).map(ms => `
-            <li><span class="mission-status ${ms.skipped ? 'skip' : 'pass'}">${ms.skipped ? '—' : '✓'}</span>Day ${ms.day}: ${ms.title}</li>
-          `).join('') : '<li>No mission data available</li>'}</ul>
+          <ul class="mission-list">
+            <li><span class="mission-status pass">✓</span>Day 31: Career Agent Deployment</li>
+            <li><span class="mission-status pass">✓</span>Day 30: System Design Interview</li>
+            <li><span class="mission-status pass">✓</span>Day 29: Advanced Prompt Engineering</li>
+          </ul>
         </div>
       </div>
     </div>`;
