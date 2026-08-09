@@ -20,6 +20,17 @@
 /* ── Body 3D Perspective ── */
 body { perspective: 1200px; }
 
+/* ── Hardware-Accelerated 3D Canvas Background ── */
+.bg-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.65;
+}
+
 /* ── Ambient Background ── */
 .ambient-light {
   background: #080c14;
@@ -42,9 +53,31 @@ body { perspective: 1200px; }
   50% { border-radius: 58% 42% 38% 62% / 52% 48% 52% 48%; transform: translate3d(25px,-20px,30px); }
 }
 
-/* ── 3D Card System ── */
-.card-3d { transform-style: preserve-3d; transition: transform 0.35s cubic-bezier(0.34,1.2,0.64,1), box-shadow 0.35s, border-color 0.35s; }
-.card-3d:hover { transform: translateY(-6px) rotateX(2deg) rotateY(-2deg); box-shadow: 0 20px 45px rgba(14, 165, 233, 0.25); border-color: rgba(56, 189, 248, 0.35); }
+/* ── 3D Card System & Mouse Tilt Flare ── */
+.card-3d {
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.18s cubic-bezier(0.2, 0, 0.2, 1), box-shadow 0.3s, border-color 0.3s;
+}
+.card-3d:hover {
+  box-shadow: 0 20px 45px rgba(14, 165, 233, 0.25);
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.card-shine {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255, 255, 255, 0.18) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 2;
+}
+.card-3d:hover .card-shine { opacity: 1; }
+
 .float-3d { animation: float3d 4s ease-in-out infinite; }
 @keyframes float3d { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 

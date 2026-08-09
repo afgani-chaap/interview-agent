@@ -104,6 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCareerPredictor(); initSearch(); initCounters();
   initContactForm(); initMobileMenu(); initProfileDrawer();
   initDashboardTabs(); initATSGrader(); initSalaryRoleplay();
+  initCanvasMesh(); initCardTilt();
   loadCandidatesWithFallback();
   navigateTo('home');
   if (TalentAI.isLoggedIn()) renderProfile();
@@ -838,4 +839,132 @@ function initSalaryRoleplay() {
 
   sendBtn?.addEventListener('click', sendMsg);
   userInput?.addEventListener('keydown', e => { if (e.key==='Enter') sendMsg(); });
+}
+
+/* ── 3D CANVAS PARTICLE MESH ENGINE ── */
+function initCanvasMesh() {
+  const canvas = document.getElementById('bg-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let width, height;
+  let mouseX = 0, mouseY = 0;
+  let targetMouseX = 0, targetMouseY = 0;
+
+  function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  window.addEventListener('mousemove', e => {
+    targetMouseX = (e.clientX - width / 2) * 0.15;
+    targetMouseY = (e.clientY - height / 2) * 0.15;
+  });
+
+  const particleCount = 75;
+  const particles = [];
+  for (let i = 0; i < particleCount; i++) {
+    particles.push({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 2 + 1,
+      baseAlpha: Math.random() * 0.4 + 0.2,
+      color: i % 3 === 0 ? '#38bdf8' : (i % 3 === 1 ? '#8b5cf6' : '#ec4899')
+    });
+  }
+
+  function loop() {
+    ctx.clearRect(0, 0, width, height);
+
+    mouseX += (targetMouseX - mouseX) * 0.05;
+    mouseY += (targetMouseY - mouseY) * 0.05;
+
+    for (let i = 0; i < particles.length; i++) {
+      const p1 = particles[i];
+      p1.x += p1.vx;
+      p1.y += p1.vy;
+
+      if (p1.x < 0 || p1.x > width) p1.vx *= -1;
+      if (p1.y < 0 || p1.y > height) p1.vy *= -1;
+
+      const renderX = p1.x + mouseX * (p1.r * 0.4);
+      const renderY = p1.y + mouseY * (p1.r * 0.4);
+
+      ctx.beginPath();
+      ctx.arc(renderX, renderY, p1.r, 0, Math.PI * 2);
+      ctx.fillStyle = p1.color;
+      ctx.globalAlpha = p1.baseAlpha;
+      ctx.fill();
+
+      for (let j = i + 1; j < particles.length; j++) {
+        const p2 = particles[j];
+        const rX2 = p2.x + mouseX * (p2.r * 0.4);
+        const rY2 = p2.y + mouseY * (p2.r * 0.4);
+
+        const dx = renderX - rX2;
+        const dy = renderY - rY2;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < 130) {
+          ctx.beginPath();
+          ctx.moveTo(renderX, renderY);
+          ctx.lineTo(rX2, rY2);
+          ctx.strokeStyle = '#38bdf8';
+          ctx.globalAlpha = (1 - dist / 130) * 0.2;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+    }
+    ctx.globalAlpha = 1.0;
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ── 3D CARD TILT & GLARE REFLECTION CONTROLLER ── */
+function initCardTilt() {
+  function attachTilt(card) {
+    if (card.dataset.tiltBound) return;
+    card.dataset.tiltBound = 'true';
+
+    if (!card.querySelector('.card-shine')) {
+      const shine = document.createElement('div');
+      shine.className = 'card-shine';
+      card.appendChild(shine);
+    }
+
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      const deltaX = (x - centerX) / centerX;
+      const deltaY = (y - centerY) / centerY;
+
+      const rotateX = (-deltaY * 8).toFixed(2);
+      const rotateY = (deltaX * 8).toFixed(2);
+
+      card.style.setProperty('--mouse-x', x + 'px');
+      card.style.setProperty('--mouse-y', y + 'px');
+      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+    });
+  }
+
+  document.querySelectorAll('.card-3d').forEach(attachTilt);
+
+  const observer = new MutationObserver(() => {
+    document.querySelectorAll('.card-3d').forEach(attachTilt);
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
 }
