@@ -116,7 +116,7 @@
               <span>Google</span><span>Amazon</span><span>Microsoft</span><span>Meta</span><span>Apple</span><span>Netflix</span><span>Stripe</span><span>Airbnb</span><span>Uber</span><span>Databricks</span>
             </div>
           </div>
-          <a href="#" class="view-all-partners">View all 50+ Partner Companies &rarr;</a>
+          <a href="#" class="view-all-partners" data-nav="contact">View all 50+ Partner Companies &rarr;</a>
         </div>
       </div>
 
@@ -262,8 +262,17 @@
 
     <section id="section-dashboard" class="page-section">
       <div class="container">
-        <div class="section-header"><h2>Admin Dashboard</h2><p>Real-time cohort metrics and candidate pipeline overview.</p></div>
-        <div id="dashboard-content"></div>
+        <div class="section-header"><h2>Admin Dashboard</h2><p>Real-time cohort metrics, candidate pipeline, and global leaderboard.</p></div>
+        <div class="dashboard-tabs">
+          <button class="dash-tab active" data-panel="panel-analytics" type="button">📊 Analytics</button>
+          <button class="dash-tab" data-panel="panel-leaderboard" type="button">🏆 Leaderboard</button>
+        </div>
+        <div id="panel-analytics" class="dashboard-panel active">
+          <div id="dashboard-content"></div>
+        </div>
+        <div id="panel-leaderboard" class="dashboard-panel">
+          <div id="leaderboard-content"></div>
+        </div>
       </div>
     </section>
 
@@ -285,17 +294,13 @@
           <div class="upload-card card-3d">
             <div class="upload-icon">📄</div>
             <h3>Upload Resume</h3>
-            <p>Drag and drop your PDF here.</p>
-            <button class="btn-primary" type="button" onclick="this.textContent='Analyzing...';setTimeout(()=>document.getElementById('ats-results').classList.remove('hidden'), 800)">Scan Resume</button>
+            <p>Drag and drop your PDF here, or click to scan.</p>
+            <button class="btn-primary" type="button" id="ats-scan-btn">Scan Resume</button>
           </div>
           <div class="ats-results hidden card-3d" id="ats-results">
-            <h3>ATS Analysis Score: <span style="color:var(--success)">88/100</span></h3>
-            <div class="progress-bar-outer glow" style="margin-bottom: 1.5rem;"><div class="progress-bar-inner" style="width:88%;background:var(--success);"></div></div>
-            <ul class="feedback-list">
-              <li><span class="mission-status pass">✓</span> Keyword Density: High Match</li>
-              <li><span class="mission-status pass">✓</span> Formatting: PDF Parsed Successfully</li>
-              <li><span class="mission-status skip">⚠️</span> Formatting: Missing impact metrics in 2 bullets</li>
-            </ul>
+            <h3>ATS Analysis Score: <span id="ats-score-val" class="ats-score-text">88/100</span></h3>
+            <div class="progress-bar-outer glow ats-progress-wrapper"><div id="ats-score-bar" class="progress-bar-inner ats-progress-inner" style="width:0%;"></div></div>
+            <div id="ats-breakdown"></div>
           </div>
         </div>
       </div>
@@ -310,17 +315,17 @@
         <div class="salary-layout card-3d">
           <div class="salary-setup">
             <h3>Current Offer Details</h3>
-            <input type="text" placeholder="Base Salary (e.g., ₹25 LPA)" style="width:100%;padding:0.75rem;margin-bottom:1rem;border-radius:var(--radius-md);border:1px solid var(--border);">
-            <input type="text" placeholder="Role (e.g., SDE-2)" style="width:100%;padding:0.75rem;margin-bottom:1rem;border-radius:var(--radius-md);border:1px solid var(--border);">
-            <button class="btn-primary btn-full" type="button" onclick="document.getElementById('salary-chat').innerHTML='<p><strong>AI Recruiter:</strong> Hi, we are excited to offer you the SDE-2 role at ₹25 LPA. How does this align with your expectations?</p>'">Start Roleplay</button>
+            <input type="text" id="salary-base" class="salary-input" placeholder="Base Salary (e.g., ₹25 LPA)">
+            <input type="text" id="salary-role" class="salary-input" placeholder="Role (e.g., SDE-2)">
+            <button class="btn-primary btn-full" type="button" id="salary-start-btn">Start Roleplay</button>
           </div>
           <div class="salary-chat-area">
             <div class="salary-chat" id="salary-chat">
-              <p style="color:var(--text-muted);text-align:center;padding:2rem;">Set up your offer to begin the roleplay.</p>
+              <p class="salary-hint">Set up your offer details and click Start Roleplay.</p>
             </div>
-            <div class="chat-input-area" style="display:flex;margin-top:1rem;">
-              <input type="text" placeholder="Type your counter..." style="flex:1;padding:0.75rem;border-radius:var(--radius-md);border:1px solid var(--border);">
-              <button class="btn-secondary" style="margin-left:0.5rem;">Send</button>
+            <div class="salary-input-row">
+              <input type="text" id="salary-user-input" class="salary-input salary-field" placeholder="Type your counter-offer...">
+              <button class="salary-send-btn" id="salary-send-btn" type="button">Send</button>
             </div>
           </div>
         </div>
