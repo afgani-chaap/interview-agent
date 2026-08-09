@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCareerPredictor(); initSearch(); initCounters();
   initContactForm(); initMobileMenu(); initProfileDrawer();
   initDashboardTabs(); initATSGrader(); initSalaryRoleplay();
-  initCanvasMesh(); initCardTilt();
+  initCanvasMesh(); initCardTilt(); initGlassHover();
   loadCandidatesWithFallback();
   navigateTo('home');
   if (TalentAI.isLoggedIn()) renderProfile();
@@ -967,6 +967,36 @@ function initCardTilt() {
 
   const observer = new MutationObserver(() => {
     document.querySelectorAll('.card-3d').forEach(attachTilt);
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
+/* ── SOFT GLASS MOUSE GLARE REFLECTION CONTROLLER (NO 3D ROTATION TILT) ── */
+function initGlassHover() {
+  function attachGlass(card) {
+    if (card.dataset.glassBound) return;
+    card.dataset.glassBound = 'true';
+
+    if (!card.querySelector('.card-shine')) {
+      const shine = document.createElement('div');
+      shine.className = 'card-shine';
+      card.appendChild(shine);
+    }
+
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      card.style.setProperty('--mouse-x', x + 'px');
+      card.style.setProperty('--mouse-y', y + 'px');
+    });
+  }
+
+  document.querySelectorAll('.glass-hover, #chat-panel').forEach(attachGlass);
+
+  const observer = new MutationObserver(() => {
+    document.querySelectorAll('.glass-hover, #chat-panel').forEach(attachGlass);
   });
   observer.observe(document.body, { childList: true, subtree: true });
 }
