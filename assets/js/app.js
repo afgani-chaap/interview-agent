@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TalentAI — Site UI (Production Build)
  */
 window.TalentAI = {
@@ -235,6 +235,12 @@ function initNavigation() {
   document.getElementById('header-cta')?.addEventListener('click', () => requireAuth('interview'));
   document.getElementById('start-interview-btn')?.addEventListener('click', () => {
     if (TalentAI.selectedField) requireAuth('interview');
+  });
+  document.querySelectorAll('.view-all-partners').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      navigateTo('contact');
+    });
   });
 }
 
