@@ -31,7 +31,6 @@ window.TalentAI = {
 
   onCandidateSelected(candidate) {
     this.activeProfile = candidate;
-    this.renderProfile(candidate);
     this.updateProfileDrawer();
   },
 
@@ -146,6 +145,10 @@ document.addEventListener('DOMContentLoaded', () => {
   renderStaticPages();
   loadCandidatesWithFallback();
   navigateTo('home');
+  // If already logged in, go straight to home (no sign-in page)
+  if (TalentAI.isLoggedIn()) {
+    renderProfile();
+  }
 });
 
 function getApiBase() {
@@ -236,6 +239,7 @@ function initAuth() {
 
 function logout() {
   localStorage.removeItem('talentai_user');
+  localStorage.removeItem('talentai_activity');
   TalentAI.user = null;
   updateAuthUI();
   updateProfileDrawer();
@@ -304,6 +308,19 @@ function navigateTo(sectionId) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   if (sectionId === 'interview') updateFieldBanner();
   if (sectionId === 'home') observeCounters();
+  if (sectionId === 'profile') renderProfile();
+
+  // Track activity for logged-in users
+  if (TalentAI.isLoggedIn() && sectionId !== 'auth') {
+    const labels = { home: 'Visited Home', interview: 'Opened Interview', results: 'Browsed Results', dashboard: 'Viewed Dashboard', profile: 'Viewed Profile', resume: 'Used ATS Grader', salary: 'Used Salary AI', predictor: 'Used Career Predictor', contact: 'Viewed Contact' };
+    const label = labels[sectionId];
+    if (label) {
+      const activity = JSON.parse(localStorage.getItem('talentai_activity') || '[]');
+      activity.push({ action: label, time: new Date().toISOString() });
+      if (activity.length > 50) activity.splice(0, activity.length - 50);
+      localStorage.setItem('talentai_activity', JSON.stringify(activity));
+    }
+  }
 }
 
 function initCarousel() {
@@ -660,7 +677,8 @@ function renderResults(candidates) {
 
   el.innerHTML = PLACEMENTS.map((p, i) => {
     const initials = p.name.split(' ').map(n => n[0]).join('');
-    const score = Math.floor(Math.random() * 8) + 90; // 90-97
+    const scores = [94, 91, 96, 90, 93, 95]; // stable, deterministic scores
+    const score = scores[i % scores.length];
     return `
       <div class="result-card card-3d">
         <div class="result-card-header">
@@ -676,8 +694,7 @@ function renderResults(candidates) {
 }
 
 function setDefaultProfile(candidates) {
-  const alex = candidates.find(c => c.member?.name === 'Alex Turner') || candidates[0];
-  if (alex) { TalentAI.activeProfile = alex; renderProfile(alex); }
+  renderProfile();
 }
 
 function renderProfile() {
@@ -686,7 +703,7 @@ function renderProfile() {
   const user = TalentAI.getUser();
   if (!user) {
     el.innerHTML = `
-      <div class="empty-state placeholder-layout card-3d" style="padding: 4rem 2rem;">
+      <div class="empty-state placeholder-layout card-3d" style="padding: 4rem 2rem;text-align:center;">
         <div class="placeholder-icon" style="font-size: 3rem; margin-bottom: 1rem;">👤</div>
         <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-primary);">Profile Not Active</h3>
         <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto;">Sign in to view your detailed 31-day cohort history and personalized curated report.</p>
@@ -697,6 +714,32 @@ function renderProfile() {
 
   const initials = user.name.split(' ').map(n => n[0]).join('').slice(0, 2);
 
+  // Track user activity in localStorage
+  let activity = JSON.parse(localStorage.getItem('talentai_activity') || '[]');
+  if (!activity.length) {
+    // Seed initial activity log
+    activity = [
+      { action: 'Account Created', time: user.joined },
+      { action: 'Viewed Career Predictor', time: new Date(Date.now() - 60000).toISOString() },
+      { action: 'Browsed Results Page', time: new Date(Date.now() - 30000).toISOString() },
+      { action: 'Viewed Profile Page', time: new Date().toISOString() }
+    ];
+    localStorage.setItem('talentai_activity', JSON.stringify(activity));
+  }
+  // Log this page view
+  const lastEntry = activity[activity.length - 1];
+  if (!lastEntry || lastEntry.action !== 'Viewed Profile Page') {
+    activity.push({ action: 'Viewed Profile Page', time: new Date().toISOString() });
+    localStorage.setItem('talentai_activity', JSON.stringify(activity));
+  }
+
+  const activityHtml = activity.slice(-8).reverse().map(a => {
+    const d = new Date(a.time);
+    const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dateStr = d.toLocaleDateString();
+    return `<li><span class="mission-status pass">✓</span>${a.action} <small style="color:var(--text-muted);margin-left:auto;">${dateStr} ${timeStr}</small></li>`;
+  }).join('');
+
   el.innerHTML = `
     <div class="profile-layout">
       <div class="profile-sidebar card-3d">
@@ -704,7 +747,7 @@ function renderProfile() {
         <h3>${user.name}</h3>
         <p class="role">Cohort Scholar</p>
         <div class="profile-tags">
-          <span class="profile-tag">In Progress</span>
+          <span class="profile-tag">31-Day Cohort</span>
           <span class="profile-tag">Top 5%</span>
         </div>
       </div>
@@ -728,6 +771,14 @@ function renderProfile() {
             <li><span class="mission-status pass">✓</span>Day 31: Career Agent Deployment</li>
             <li><span class="mission-status pass">✓</span>Day 30: System Design Interview</li>
             <li><span class="mission-status pass">✓</span>Day 29: Advanced Prompt Engineering</li>
+            <li><span class="mission-status pass">✓</span>Day 28: Multi-Agent Orchestration</li>
+            <li><span class="mission-status pass">✓</span>Day 27: RAG Pipeline Optimization</li>
+          </ul>
+        </div>
+        <div class="profile-section card-3d">
+          <h4>Recent Activity on Platform</h4>
+          <ul class="mission-list activity-log">
+            ${activityHtml}
           </ul>
         </div>
       </div>
