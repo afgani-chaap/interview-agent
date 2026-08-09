@@ -52,41 +52,65 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Vibrant ambient background */
+/* Vibrant 3D Ambient Background */
 .ambient-light {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: var(--gradient-hero);
+  background: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 50%, #e0f2fe 100%);
   overflow: hidden;
 }
 
 .ambient-light::before {
   content: '';
   position: absolute;
-  width: 600px;
-  height: 600px;
-  top: -200px;
-  right: -100px;
-  background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, transparent 70%);
-  animation: floatBlob 18s ease-in-out infinite;
+  inset: 0;
+  backdrop-filter: blur(80px);
+  z-index: 1;
 }
 
-.ambient-light::after {
-  content: '';
+.shape-3d {
   position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.8;
+  animation: floatBlob 20s ease-in-out infinite alternate;
+}
+
+.shape-1 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle at 30% 30%, #3b82f6, #8b5cf6);
+  top: -150px;
+  left: -150px;
+  animation-delay: 0s;
+}
+
+.shape-2 {
   width: 500px;
   height: 500px;
-  bottom: -150px;
-  left: -100px;
-  background: radial-gradient(circle, rgba(249, 115, 22, 0.1) 0%, transparent 70%);
-  animation: floatBlob 22s ease-in-out infinite reverse;
+  background: radial-gradient(circle at 70% 30%, #ec4899, #f43f5e);
+  bottom: -100px;
+  right: -100px;
+  animation-duration: 25s;
+  animation-direction: alternate-reverse;
+}
+
+.shape-3 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle at 50% 50%, #10b981, #06b6d4);
+  top: 40%;
+  left: 60%;
+  animation-duration: 30s;
 }
 
 @keyframes floatBlob {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(30px, -20px); }
+  0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+  33% { transform: translate(50px, -50px) scale(1.1) rotate(15deg); }
+  66% { transform: translate(-30px, 40px) scale(0.9) rotate(-10deg); }
+  100% { transform: translate(0, 0) scale(1) rotate(0deg); }
 }
 
 .hidden { display: none !important; }

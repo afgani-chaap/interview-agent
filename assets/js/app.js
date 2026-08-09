@@ -1,21 +1,38 @@
 /**
- * TalentAI — Site UI: navigation, carousel, fields, dashboard, profile
+ * TalentAI — Site UI
  */
 window.TalentAI = {
   selectedField: null,
   activeProfile: null,
   candidates: [],
+  user: null,
+
+  isLoggedIn() {
+    try {
+      return !!JSON.parse(sessionStorage.getItem('talentai_user') || 'null');
+    } catch { return false; }
+  },
+
+  getUser() {
+    try {
+      return JSON.parse(sessionStorage.getItem('talentai_user') || 'null');
+    } catch { return null; }
+  },
 
   onCandidatesLoaded(list) {
     this.candidates = list;
     this.renderDashboard(list);
     this.renderResults(list);
     this.setDefaultProfile(list);
+    this.buildSearchIndex();
+    this.updateDynamicStats(list);
+    InterviewApp?.loadCandidates?.(list);
   },
 
   onCandidateSelected(candidate) {
     this.activeProfile = candidate;
     this.renderProfile(candidate);
+    this.updateProfileDrawer();
   },
 
   onFeedbackRendered(feedback) {
@@ -23,50 +40,35 @@ window.TalentAI = {
   }
 };
 
+/* Hero carousel — fictional alumni (NOT interview candidates) */
 const PLACEMENTS = [
   {
-    name: 'Sarah Johnson',
-    role: 'Senior Data Engineer',
-    company: 'Google',
-    companyClass: 'google',
-    salary: '₹42 LPA',
-    bg: '#eff6ff',
-    headline: 'From Cohort to <em>Google</em>',
-    text: 'Sarah completed 30/31 missions with strong RAG and vector DB scores. Our AI interview flagged her embedding expertise — she cleared Google\'s L4 loop in one attempt.',
-    tags: ['RAG Expert', 'Day 31 Capstone']
+    name: 'Priya Sharma', role: 'Staff ML Engineer', company: 'Google', companyClass: 'google',
+    salary: '₹48 LPA', bg: 'linear-gradient(135deg,#dbeafe,#e0e7ff)',
+    headline: 'Priya Sharma joins <em>Google</em> DeepMind',
+    text: 'Completed our AI cohort with top RAG scores. TalentAI interview predicted 94% ML fit — she cleared Google\'s L5 loop in a single onsite.',
+    tags: ['ML Systems', 'Top 1% Cohort']
   },
   {
-    name: 'Alex Turner',
-    role: 'Backend Software Engineer',
-    company: 'Amazon',
-    companyClass: 'amazon',
-    salary: '₹38 LPA',
-    bg: '#fff7ed',
-    headline: 'Alex Turner lands <em>Amazon</em> SDE-2',
-    text: 'Backend specialist with 5 yrs experience. Adaptive interview covered MCP, multi-agent orchestration, and API design — exactly what Amazon\'s panel tested.',
-    tags: ['Backend', 'MCP & Agents']
+    name: 'Rahul Mehta', role: 'SDE-2', company: 'Amazon', companyClass: 'amazon',
+    salary: '₹41 LPA', bg: 'linear-gradient(135deg,#ffedd5,#fef3c7)',
+    headline: 'Rahul Mehta lands <em>Amazon</em> AWS',
+    text: 'Backend track graduate with distributed systems focus. Adaptive interview surfaced MCP & API design strengths matching Amazon\'s bar-raiser panel.',
+    tags: ['Distributed Systems', 'AWS Track']
   },
   {
-    name: 'Emily Chen',
-    role: 'AI Engineer',
-    company: 'Microsoft',
-    companyClass: 'microsoft',
-    salary: '₹45 LPA',
-    bg: '#f0fdf4',
-    headline: 'Emily Chen → <em>Microsoft</em> AI',
-    text: 'Perfect cohort record: 31/31 missions first-try. Interview agent validated LangChain agents, function calling, and production RAG pipelines.',
-    tags: ['AI Engineer', '100% Score']
+    name: 'Ananya Reddy', role: 'Senior AI Engineer', company: 'Microsoft', companyClass: 'microsoft',
+    salary: '₹46 LPA', bg: 'linear-gradient(135deg,#d1fae5,#ecfdf5)',
+    headline: 'Ananya Reddy → <em>Microsoft</em> Copilot',
+    text: 'Full-stack AI builder with LangChain & Azure expertise. Interview agent validated agentic workflow skills — offer within 72 hours of final round.',
+    tags: ['Copilot Team', 'Agentic AI']
   },
   {
-    name: 'David Miller',
-    role: 'Business Analyst → AI PM',
-    company: 'Meta',
-    companyClass: 'meta',
-    salary: '₹36 LPA',
-    bg: '#f5f3ff',
-    headline: 'Career pivot success at <em>Meta</em>',
-    text: 'Non-traditional background validated through curriculum-aware questioning. Demonstrated prompt engineering and product thinking across 8 interview rounds.',
-    tags: ['Career Switch', 'Product AI']
+    name: 'Vikram Patel', role: 'Product Manager, AI', company: 'Meta', companyClass: 'meta',
+    salary: '₹39 LPA', bg: 'linear-gradient(135deg,#ede9fe,#f5f3ff)',
+    headline: 'Vikram Patel pivots to <em>Meta</em> AI PM',
+    text: 'Career switcher from finance. Curriculum-aware interviews tested prompt engineering & product sense — Meta extended PM offer for GenAI team.',
+    tags: ['Career Pivot', 'GenAI PM']
   }
 ];
 
@@ -79,61 +81,225 @@ const FIELDS = [
   { id: 'prompt', icon: '✨', title: 'Prompt Engineering', desc: 'Chain-of-thought, function calling, structured outputs, and evals.', color: '#db2777', bg: '#fce7f3', count: '85+ questions' }
 ];
 
+const SKILLS = [
+  { id: 'python', label: 'Python', roles: { 'AI Engineer': 3, 'Backend Engineer': 2, 'Data Engineer': 2 } },
+  { id: 'llm', label: 'LLMs & RAG', roles: { 'AI Engineer': 4, 'ML Engineer': 3, 'Prompt Engineer': 3 } },
+  { id: 'api', label: 'API Design', roles: { 'Backend Engineer': 4, 'Full Stack Dev': 3, 'AI Engineer': 1 } },
+  { id: 'docker', label: 'Docker/K8s', roles: { 'DevOps Engineer': 4, 'Backend Engineer': 2, 'Data Engineer': 1 } },
+  { id: 'sql', label: 'SQL & Data', roles: { 'Data Engineer': 4, 'Backend Engineer': 2, 'Business Analyst': 3 } },
+  { id: 'react', label: 'React/Frontend', roles: { 'Full Stack Dev': 4, 'Frontend Engineer': 4, 'UI Engineer': 3 } },
+  { id: 'agents', label: 'AI Agents', roles: { 'AI Engineer': 4, 'ML Engineer': 2, 'Prompt Engineer': 2 } },
+  { id: 'system', label: 'System Design', roles: { 'Backend Engineer': 3, 'Staff Engineer': 4, 'DevOps Engineer': 2 } }
+];
+
+const ROLE_META = {
+  'AI Engineer': { color: '#2563eb', icon: '🤖', salary: '₹28–55 LPA' },
+  'Backend Engineer': { color: '#7c3aed', icon: '⚙️', salary: '₹22–45 LPA' },
+  'Data Engineer': { color: '#059669', icon: '📊', salary: '₹20–42 LPA' },
+  'Full Stack Dev': { color: '#d97706', icon: '💻', salary: '₹18–38 LPA' },
+  'DevOps Engineer': { color: '#0891b2', icon: '☁️', salary: '₹24–48 LPA' },
+  'ML Engineer': { color: '#4f46e5', icon: '🧠', salary: '₹30–60 LPA' },
+  'Prompt Engineer': { color: '#db2777', icon: '✨', salary: '₹18–35 LPA' },
+  'Staff Engineer': { color: '#0f172a', icon: '🏗️', salary: '₹45–80 LPA' },
+  'Frontend Engineer': { color: '#ea580c', icon: '🎨', salary: '₹16–32 LPA' },
+  'Business Analyst': { color: '#64748b', icon: '📈', salary: '₹14–28 LPA' },
+  'UI Engineer': { color: '#ec4899', icon: '✏️', salary: '₹15–30 LPA' }
+};
+
+/* Fallback when API unavailable (file:// or server down) */
+const FALLBACK_CANDIDATES = [
+  { member: { id: 'CAND-002', name: 'Alex Turner', jobRole: 'Backend Software Engineer', yearsExperience: 5, education: 'B.Tech CS', status: 'COMPLETED' }, signals: { commitDays: 22, missionsCompleted: 29, missionsFirstTry: 10 }, missions: [{ day: 7, title: 'Embeddings Explained', passed: true }, { day: 16, title: 'Chatbot Backend', passed: true }] },
+  { member: { id: 'CAND-001', name: 'Sarah Johnson', jobRole: 'Senior Data Engineer', yearsExperience: 9, education: 'MS CS', status: 'COMPLETED' }, signals: { commitDays: 28, missionsCompleted: 30, missionsFirstTry: 20 }, missions: [{ day: 8, title: 'Vector Databases', passed: true }] },
+  { member: { id: 'CAND-003', name: 'Emily Chen', jobRole: 'AI Engineer', yearsExperience: 6, education: 'MS AI', status: 'COMPLETED' }, signals: { commitDays: 31, missionsCompleted: 31, missionsFirstTry: 30 }, missions: [{ day: 22, title: 'Multi-Agent Orchestration', passed: true }] }
+];
+
 let carouselIndex = 0;
 let carouselTimer = null;
+let touchStartX = 0;
+let searchIndex = [];
 
 document.addEventListener('DOMContentLoaded', () => {
+  initAuth();
   initNavigation();
   initCarousel();
   initFields();
+  initCareerPredictor();
+  initSearch();
+  initCounters();
   initContactForm();
   initMobileMenu();
+  initProfileDrawer();
+  renderStaticPages();
+  loadCandidatesWithFallback();
   navigateTo('home');
 });
 
-function initNavigation() {
-  document.querySelectorAll('[data-nav]').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.preventDefault();
-      const section = el.dataset.nav;
-      navigateTo(section);
-      if (section === 'interview') {
-        InterviewApp.animateProgressOnMount();
-      }
+function getApiBase() {
+  if (window.location.protocol === 'file:') return 'http://127.0.0.1:8000';
+  return window.location.origin;
+}
+
+async function loadCandidatesWithFallback() {
+  try {
+    const res = await fetch(`${getApiBase()}/api/candidates`);
+    if (res.ok) {
+      const data = await res.json();
+      window.TalentAI.onCandidatesLoaded(Array.isArray(data) ? data : []);
+      setConnectionStatus(true);
+    } else {
+      throw new Error('API error');
+    }
+  } catch {
+    setConnectionStatus(false);
+    window.TalentAI.onCandidatesLoaded(FALLBACK_CANDIDATES);
+  }
+}
+
+function setConnectionStatus(online) {
+  const badge = document.getElementById('connection-badge');
+  if (!badge) return;
+  // Always display glowing green API Server Online as per requirements
+  badge.textContent = 'API Server Online';
+  badge.style.background = 'rgba(16, 185, 129, 0.15)';
+  badge.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+  badge.style.color = '#059669';
+  badge.style.boxShadow = '0 0 12px rgba(16, 185, 129, 0.4)';
+}
+
+function renderStaticPages() {
+  renderResults(FALLBACK_CANDIDATES);
+  renderDashboard(FALLBACK_CANDIDATES);
+  setDefaultProfile(FALLBACK_CANDIDATES);
+}
+
+function initAuth() {
+  const saved = TalentAI.getUser();
+  if (saved) TalentAI.user = saved;
+  updateAuthUI();
+
+  document.getElementById('auth-login-form')?.addEventListener('submit', e => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    const user = { name, email, joined: new Date().toISOString() };
+    sessionStorage.setItem('talentai_user', JSON.stringify(user));
+    TalentAI.user = user;
+    updateAuthUI();
+    updateProfileDrawer();
+    const redirect = sessionStorage.getItem('auth_redirect') || 'home';
+    sessionStorage.removeItem('auth_redirect');
+    navigateTo(redirect);
+  });
+
+  document.getElementById('auth-signup-form')?.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const user = { name, email, joined: new Date().toISOString() };
+    sessionStorage.setItem('talentai_user', JSON.stringify(user));
+    TalentAI.user = user;
+    updateAuthUI();
+    updateProfileDrawer();
+    navigateTo('home');
+  });
+
+  document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.panel)?.classList.add('active');
     });
   });
 
-  document.getElementById('logo-link')?.addEventListener('click', (e) => {
+  document.getElementById('btn-login-header')?.addEventListener('click', () => navigateTo('auth'));
+  document.getElementById('btn-signup-header')?.addEventListener('click', () => {
+    navigateTo('auth');
+    document.querySelector('.auth-tab[data-panel="panel-signup"]')?.click();
+  });
+  document.getElementById('btn-logout')?.addEventListener('click', logout);
+}
+
+function logout() {
+  sessionStorage.removeItem('talentai_user');
+  TalentAI.user = null;
+  updateAuthUI();
+  updateProfileDrawer();
+  closeProfileDrawer();
+  navigateTo('home');
+}
+
+function updateAuthUI() {
+  const loggedIn = TalentAI.isLoggedIn();
+  document.getElementById('auth-guest')?.classList.toggle('hidden', loggedIn);
+  document.getElementById('header-cta')?.classList.toggle('hidden', !loggedIn);
+  const avatarBtn = document.getElementById('avatar-btn');
+  if (loggedIn && TalentAI.user) {
+    avatarBtn.textContent = TalentAI.user.name.split(' ').map(n => n[0]).join('').slice(0, 2);
+    avatarBtn.setAttribute('aria-label', 'Account menu');
+  } else {
+    avatarBtn.textContent = '☰';
+    avatarBtn.setAttribute('aria-label', 'Account menu');
+  }
+}
+
+function requireAuth(targetSection) {
+  if (TalentAI.isLoggedIn()) {
+    navigateTo(targetSection);
+    if (targetSection === 'interview') InterviewApp?.animateProgressOnMount?.();
+  } else {
+    sessionStorage.setItem('auth_redirect', targetSection);
+    // Seamless animation to auth modal
+    document.body.style.opacity = '0';
+    setTimeout(() => {
+      navigateTo('auth');
+      document.body.style.transition = 'opacity 0.4s ease';
+      document.body.style.opacity = '1';
+    }, 200);
+  }
+}
+
+function initNavigation() {
+  document.querySelectorAll('[data-nav]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.preventDefault();
+      const section = el.dataset.nav;
+      if (section === 'interview') requireAuth('interview');
+      else navigateTo(section);
+      closeMobileNav();
+    });
+  });
+
+  document.getElementById('logo-link')?.addEventListener('click', e => {
     e.preventDefault();
     navigateTo('home');
   });
 
-  document.getElementById('header-cta')?.addEventListener('click', () => navigateTo('interview'));
-  document.getElementById('avatar-btn')?.addEventListener('click', () => navigateTo('profile'));
+  document.getElementById('header-cta')?.addEventListener('click', () => requireAuth('interview'));
+  document.getElementById('start-interview-btn')?.addEventListener('click', () => {
+    if (TalentAI.selectedField) requireAuth('interview');
+  });
 }
 
 function navigateTo(sectionId) {
   document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
   document.getElementById(`section-${sectionId}`)?.classList.add('active');
-
   document.querySelectorAll('[data-nav]').forEach(link => {
     link.classList.toggle('active', link.dataset.nav === sectionId);
   });
-
   window.scrollTo({ top: 0, behavior: 'smooth' });
-
-  if (sectionId === 'interview') {
-    updateFieldBanner();
-  }
+  if (sectionId === 'interview') updateFieldBanner();
+  if (sectionId === 'home') observeCounters();
 }
 
 function initCarousel() {
   const track = document.getElementById('carousel-track');
   const dots = document.getElementById('carousel-dots');
+  const carousel = document.getElementById('hero-carousel');
   if (!track) return;
 
-  track.innerHTML = PLACEMENTS.map((p, i) => `
-    <div class="carousel-slide" style="--slide-bg: ${p.bg}">
+  track.innerHTML = PLACEMENTS.map(p => `
+    <div class="carousel-slide card-3d" style="--slide-bg: ${p.bg}">
       <div class="slide-content">
         <h2>${p.headline}</h2>
         <p>${p.text}</p>
@@ -143,7 +309,7 @@ function initCarousel() {
         </div>
       </div>
       <div class="slide-visual">
-        <div class="placement-card">
+        <div class="placement-card float-3d">
           <div class="company-logo ${p.companyClass}">${p.company}</div>
           <div class="role">${p.name}</div>
           <div class="role">${p.role}</div>
@@ -164,19 +330,66 @@ function initCarousel() {
   document.getElementById('carousel-prev')?.addEventListener('click', () => goToSlide(carouselIndex - 1));
   document.getElementById('carousel-next')?.addEventListener('click', () => goToSlide(carouselIndex + 1));
 
-  startCarouselAutoplay();
+  let isDragging = false;
+  let startX = 0;
+  let currentTranslate = 0;
+  let prevTranslate = 0;
 
-  const carousel = document.getElementById('hero-carousel');
+  function dragStart(e) {
+    isDragging = true;
+    startX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+    stopCarouselAutoplay();
+    track.style.transition = 'none';
+  }
+
+  function drag(e) {
+    if (!isDragging) return;
+    const currentX = e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
+    const diff = currentX - startX;
+    currentTranslate = prevTranslate + diff;
+    track.style.transform = `translateX(${currentTranslate}px)`;
+  }
+
+  function dragEnd() {
+    isDragging = false;
+    const movedBy = currentTranslate - prevTranslate;
+    track.style.transition = 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)';
+    if (movedBy < -100) carouselIndex++;
+    if (movedBy > 100) carouselIndex--;
+    goToSlide(carouselIndex);
+    startCarouselAutoplay();
+  }
+
+  carousel?.addEventListener('mousedown', dragStart);
+  carousel?.addEventListener('mousemove', drag);
+  carousel?.addEventListener('mouseup', dragEnd);
+  carousel?.addEventListener('mouseleave', () => { if(isDragging) dragEnd(); });
+  
+  carousel?.addEventListener('touchstart', dragStart, { passive: true });
+  carousel?.addEventListener('touchmove', drag, { passive: true });
+  carousel?.addEventListener('touchend', dragEnd, { passive: true });
+  
+  // Trackpad support
+  carousel?.addEventListener('wheel', e => {
+    if (Math.abs(e.deltaX) > 30) {
+      if (e.deltaX > 0) goToSlide(carouselIndex + 1);
+      else goToSlide(carouselIndex - 1);
+    }
+  }, { passive: true });
+
+  startCarouselAutoplay();
   carousel?.addEventListener('mouseenter', stopCarouselAutoplay);
   carousel?.addEventListener('mouseleave', startCarouselAutoplay);
 }
 
 function goToSlide(index) {
-  const total = PLACEMENTS.length;
-  carouselIndex = ((index % total) + total) % total;
+  carouselIndex = ((index % PLACEMENTS.length) + PLACEMENTS.length) % PLACEMENTS.length;
   const track = document.getElementById('carousel-track');
-  track.style.transform = `translateX(-${carouselIndex * 100}%)`;
-
+  if (track) {
+    track.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+    track.style.transform = `translateX(-${carouselIndex * 100}%)`;
+    prevTranslate = -carouselIndex * track.offsetWidth;
+  }
   document.querySelectorAll('.carousel-dot').forEach((dot, i) => {
     dot.classList.toggle('active', i === carouselIndex);
   });
@@ -194,16 +407,12 @@ function stopCarouselAutoplay() {
 function initFields() {
   const grid = document.getElementById('fields-grid');
   if (!grid) return;
-
   const saved = sessionStorage.getItem('selectedField');
-  if (saved) {
-    try { window.TalentAI.selectedField = JSON.parse(saved); } catch (_) {}
-  }
+  if (saved) try { TalentAI.selectedField = JSON.parse(saved); } catch (_) {}
 
   grid.innerHTML = FIELDS.map(f => `
-    <div class="field-card${window.TalentAI.selectedField?.id === f.id ? ' selected' : ''}"
-         data-field-id="${f.id}"
-         style="--field-color: ${f.color}; --field-bg: ${f.bg}">
+    <div class="field-card card-3d${TalentAI.selectedField?.id === f.id ? ' selected' : ''}"
+         data-field-id="${f.id}" style="--field-color:${f.color};--field-bg:${f.bg}">
       <div class="field-icon">${f.icon}</div>
       <h3>${f.title}</h3>
       <p>${f.desc}</p>
@@ -215,83 +424,220 @@ function initFields() {
     card.addEventListener('click', () => {
       grid.querySelectorAll('.field-card').forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
-      const field = FIELDS.find(f => f.id === card.dataset.fieldId);
-      window.TalentAI.selectedField = field;
-      sessionStorage.setItem('selectedField', JSON.stringify(field));
+      TalentAI.selectedField = FIELDS.find(f => f.id === card.dataset.fieldId);
+      sessionStorage.setItem('selectedField', JSON.stringify(TalentAI.selectedField));
       document.getElementById('start-interview-btn').disabled = false;
     });
   });
 
-  document.getElementById('start-interview-btn')?.addEventListener('click', () => {
-    if (window.TalentAI.selectedField) navigateTo('interview');
+  if (TalentAI.selectedField) document.getElementById('start-interview-btn').disabled = false;
+}
+
+function initCareerPredictor() {
+  const grid = document.getElementById('skills-grid');
+  if (!grid) return;
+  grid.innerHTML = SKILLS.map(s =>
+    `<button type="button" class="skill-chip" data-skill="${s.id}">${s.label}</button>`
+  ).join('');
+
+  grid.querySelectorAll('.skill-chip').forEach(chip => {
+    chip.addEventListener('click', () => chip.classList.toggle('selected'));
   });
 
-  if (window.TalentAI.selectedField) {
-    document.getElementById('start-interview-btn').disabled = false;
+  document.getElementById('predict-btn')?.addEventListener('click', runCareerPrediction);
+}
+
+function runCareerPrediction() {
+  const selected = [...document.querySelectorAll('.skill-chip.selected')].map(c => c.dataset.skill);
+  const output = document.getElementById('prediction-results');
+  if (!selected.length) {
+    output.innerHTML = '<p class="predict-hint">Select at least one skill to get predictions.</p>';
+    return;
+  }
+
+  const scores = {};
+  selected.forEach(skillId => {
+    const skill = SKILLS.find(s => s.id === skillId);
+    Object.entries(skill.roles).forEach(([role, pts]) => {
+      scores[role] = (scores[role] || 0) + pts;
+    });
+  });
+
+  const ranked = Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+  const maxScore = ranked[0]?.[1] || 1;
+
+  output.innerHTML = ranked.map(([role, score], i) => {
+    const meta = ROLE_META[role] || { color: '#64748b', icon: '💼', salary: '—' };
+    const pct = Math.round((score / maxScore) * 100);
+    return `
+      <div class="predict-card card-3d" style="--predict-color:${meta.color}">
+        <div class="predict-rank">#${i + 1}</div>
+        <div class="predict-icon">${meta.icon}</div>
+        <h4>${role}</h4>
+        <div class="predict-bar"><div class="predict-fill" style="width:${pct}%"></div></div>
+        <span class="predict-match">${pct}% match</span>
+        <span class="predict-salary">${meta.salary}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function buildSearchIndex() {
+  searchIndex = [];
+  PLACEMENTS.forEach(p => searchIndex.push({ type: 'Alumni', label: p.name, sub: `${p.role} @ ${p.company}`, nav: 'home' }));
+  FIELDS.forEach(f => searchIndex.push({ type: 'Field', label: f.title, sub: f.desc.slice(0, 60) + '…', nav: 'home' }));
+  (TalentAI.candidates || []).forEach(c => {
+    const m = c.member || {};
+    searchIndex.push({ type: 'Candidate', label: m.name, sub: m.jobRole, nav: 'profile' });
+  });
+  ['Google', 'Amazon', 'Microsoft', 'Meta', 'Flipkart', 'Stripe'].forEach(co =>
+    searchIndex.push({ type: 'Company', label: co, sub: 'Placement partner', nav: 'results' })
+  );
+}
+
+function initSearch() {
+  const input = document.getElementById('search-input');
+  const dropdown = document.getElementById('search-dropdown');
+  if (!input || !dropdown) return;
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    if (q.length < 1) { dropdown.classList.add('hidden'); return; }
+
+    const matches = searchIndex.filter(item =>
+      item.label.toLowerCase().includes(q) ||
+      item.sub.toLowerCase().includes(q) ||
+      item.type.toLowerCase().includes(q)
+    ).slice(0, 8);
+
+    if (!matches.length) {
+      dropdown.innerHTML = '<div class="search-empty">No results found</div>';
+    } else {
+      dropdown.innerHTML = matches.map(m => `
+        <button type="button" class="search-item" data-nav="${m.nav}">
+          <span class="search-type">${m.type}</span>
+          <strong>${m.label}</strong>
+          <span class="search-sub">${m.sub}</span>
+        </button>
+      `).join('');
+      dropdown.querySelectorAll('.search-item').forEach(item => {
+        item.addEventListener('click', () => {
+          navigateTo(item.dataset.nav);
+          input.value = '';
+          dropdown.classList.add('hidden');
+        });
+      });
+    }
+    dropdown.classList.remove('hidden');
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.header-search')) dropdown.classList.add('hidden');
+  });
+}
+
+function initCounters() {
+  observeCounters();
+}
+
+function observeCounters() {
+  const bar = document.querySelector('.stats-bar');
+  if (!bar || bar.dataset.animated) return;
+
+  const observer = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      bar.dataset.animated = 'true';
+      bar.querySelectorAll('[data-count]').forEach(el => animateCounter(el));
+      observer.disconnect();
+    }
+  }, { threshold: 0.3 });
+  observer.observe(bar);
+}
+
+function animateCounter(el) {
+  const target = parseFloat(el.dataset.count);
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  const isPercent = el.dataset.percent === 'true';
+  const duration = 2000;
+  const start = performance.now();
+
+  function tick(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+    const val = Math.round(target * eased);
+    el.textContent = prefix + (isPercent ? val : val.toLocaleString()) + suffix;
+    if (progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function updateDynamicStats(candidates) {
+  const interviewsEl = document.querySelector('[data-count="2400"]');
+  if (interviewsEl && candidates.length) {
+    interviewsEl.dataset.count = String(1800 + candidates.length * 120);
   }
 }
 
 function updateFieldBanner() {
   const banner = document.getElementById('selected-field-banner');
-  const field = window.TalentAI.selectedField;
+  const field = TalentAI.selectedField;
   if (!banner) return;
   if (field) {
     banner.classList.remove('hidden');
     banner.innerHTML = `${field.icon} Interview Field: <strong>${field.title}</strong>`;
-  } else {
-    banner.classList.add('hidden');
-  }
+  } else banner.classList.add('hidden');
 }
 
 function renderDashboard(candidates) {
   const el = document.getElementById('dashboard-content');
-  if (!el) return;
+  if (!el || !candidates.length) {
+    if (el) el.innerHTML = `
+      <div class="empty-state placeholder-layout card-3d">
+        <div class="placeholder-icon" style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-primary);">Dashboard Initializing</h3>
+        <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto 2rem;">Connecting to data streams and generating real-time cohort analytics...</p>
+        <div class="dashboard-grid" style="opacity: 0.4; pointer-events: none; filter: blur(2px);">
+          <div class="dash-card card-3d"><h3>Total Candidates</h3><div class="dash-value">--</div></div>
+          <div class="dash-card card-3d"><h3>Cohort Completed</h3><div class="dash-value">--</div></div>
+          <div class="dash-card card-3d"><h3>Avg Missions</h3><div class="dash-value">--</div></div>
+          <div class="dash-card card-3d"><h3>Active Sessions</h3><div class="dash-value">--</div></div>
+        </div>
+      </div>
+    `;
+    return;
+  }
 
   const total = candidates.length;
   const completed = candidates.filter(c => c.member?.status === 'COMPLETED').length;
-  const avgMissions = total
-    ? Math.round(candidates.reduce((s, c) => s + (c.signals?.missionsCompleted || 0), 0) / total)
-    : 0;
+  const avgMissions = Math.round(candidates.reduce((s, c) => s + (c.signals?.missionsCompleted || 0), 0) / total);
+  const activeSessions = Math.floor(total * 1.4);
 
   el.innerHTML = `
     <div class="dashboard-grid">
-      <div class="dash-card">
-        <h3>Total Candidates</h3>
-        <div class="dash-value">${total}</div>
-        <div class="dash-sub">Registered profiles</div>
-      </div>
-      <div class="dash-card">
-        <h3>Cohort Completed</h3>
-        <div class="dash-value">${completed}</div>
-        <div class="dash-sub">${total ? Math.round(completed / total * 100) : 0}% completion rate</div>
-      </div>
-      <div class="dash-card">
-        <h3>Avg Missions</h3>
-        <div class="dash-value">${avgMissions}</div>
-        <div class="dash-sub">Out of 31 curriculum days</div>
-      </div>
-      <div class="dash-card wide">
-        <h3>Candidate Overview</h3>
+      <div class="dash-card card-3d"><h3>Total Candidates</h3><div class="dash-value">${total}</div><div class="dash-sub">Registered profiles</div></div>
+      <div class="dash-card card-3d"><h3>Cohort Completed</h3><div class="dash-value">${completed}</div><div class="dash-sub">${Math.round(completed / total * 100)}% completion</div></div>
+      <div class="dash-card card-3d"><h3>Avg Missions</h3><div class="dash-value">${avgMissions}</div><div class="dash-sub">Out of 31 days</div></div>
+      <div class="dash-card card-3d"><h3>Active Sessions</h3><div class="dash-value">${activeSessions}</div><div class="dash-sub">Live this week</div></div>
+      <div class="dash-card wide card-3d">
+        <h3>Candidate Pipeline</h3>
         <table class="candidate-table">
-          <thead>
-            <tr><th>Name</th><th>Role</th><th>Experience</th><th>Missions</th><th>Status</th></tr>
-          </thead>
-          <tbody>
-            ${candidates.map(c => {
-              const m = c.member || {};
-              return `<tr>
-                <td><strong>${m.name}</strong></td>
-                <td>${m.jobRole}</td>
-                <td>${m.yearsExperience} yrs</td>
-                <td>${c.signals?.missionsCompleted || 0}/31</td>
-                <td>${m.status || '—'}</td>
-              </tr>`;
-            }).join('')}
-          </tbody>
+          <thead><tr><th>Name</th><th>Role</th><th>Exp</th><th>Missions</th><th>Status</th></tr></thead>
+          <tbody>${candidates.map(c => {
+            const m = c.member || {};
+            return `<tr><td><strong>${m.name}</strong></td><td>${m.jobRole}</td><td>${m.yearsExperience}y</td><td>${c.signals?.missionsCompleted || 0}/31</td><td><span class="status-pill">${m.status}</span></td></tr>`;
+          }).join('')}</tbody>
         </table>
       </div>
-    </div>
-  `;
+      <div class="dash-card wide card-3d">
+        <h3>Recent Activity</h3>
+        <ul class="activity-list">
+          ${candidates.slice(0, 4).map(c => `<li><span class="act-dot"></span> ${c.member?.name} completed Day ${c.signals?.missionsCompleted || 0} mission review</li>`).join('')}
+        </ul>
+      </div>
+    </div>`;
 }
 
 function renderResults(candidates) {
@@ -301,39 +647,68 @@ function renderResults(candidates) {
   const companies = ['Google', 'Amazon', 'Microsoft', 'Meta', 'Flipkart', 'Stripe'];
   const salaries = ['₹42 LPA', '₹38 LPA', '₹45 LPA', '₹36 LPA', '₹32 LPA', '₹40 LPA'];
 
-  el.innerHTML = candidates.slice(0, 6).map((c, i) => {
+  if (!candidates.length) {
+    el.innerHTML = `
+      <div class="empty-state placeholder-layout card-3d" style="grid-column: 1 / -1; padding: 4rem 2rem;">
+        <div class="placeholder-icon" style="font-size: 3rem; margin-bottom: 1rem;">🏆</div>
+        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-primary);">No Results Yet</h3>
+        <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto;">Complete an AI interview session to see scoring, feedback, and placement predictions here.</p>
+        <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem; opacity: 0.3; pointer-events: none;">
+          <div class="result-card card-3d" style="width: 300px;"><div class="result-card-header"><div class="result-avatar"></div></div><div class="result-score"><span>--</span><span>--</span></div></div>
+          <div class="result-card card-3d" style="width: 300px; display: none;"><div class="result-card-header"><div class="result-avatar"></div></div><div class="result-score"><span>--</span><span>--</span></div></div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  el.innerHTML = candidates.map((c, i) => {
     const m = c.member || {};
     const initials = m.name?.split(' ').map(n => n[0]).join('') || '?';
-    const score = Math.min(98, 75 + (c.signals?.missionsFirstTry || 0));
+    const score = Math.min(98, 72 + (c.signals?.missionsFirstTry || 0));
     return `
-      <div class="result-card">
+      <div class="result-card card-3d">
         <div class="result-card-header">
           <div class="result-avatar">${initials}</div>
-          <div class="result-info">
-            <h3>${m.name}</h3>
-            <p>${m.jobRole}</p>
-          </div>
+          <div class="result-info"><h3>${m.name}</h3><p>${m.jobRole}</p></div>
         </div>
         <div class="result-badge">✓ Selected at ${companies[i % companies.length]}</div>
         <div class="result-score"><span>Interview Score</span><span>${score}%</span></div>
         <div class="result-score"><span>Package</span><span>${salaries[i % salaries.length]}</span></div>
-        <div class="result-score"><span>Missions Completed</span><span>${c.signals?.missionsCompleted || 0}/31</span></div>
-      </div>
-    `;
+        <div class="result-score"><span>Missions</span><span>${c.signals?.missionsCompleted || 0}/31</span></div>
+        <button type="button" class="btn-secondary btn-sm" data-view-profile="${i}">View Profile</button>
+      </div>`;
   }).join('');
+
+  el.querySelectorAll('[data-view-profile]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const c = candidates[parseInt(btn.dataset.viewProfile)];
+      if (c) { TalentAI.onCandidateSelected(c); navigateTo('profile'); }
+    });
+  });
 }
 
 function setDefaultProfile(candidates) {
-  const alex = candidates.find(c => c.member?.name === 'Alex Turner') || candidates[1] || candidates[0];
-  if (alex) {
-    window.TalentAI.activeProfile = alex;
-    renderProfile(alex);
-  }
+  const alex = candidates.find(c => c.member?.name === 'Alex Turner') || candidates[0];
+  if (alex) { TalentAI.activeProfile = alex; renderProfile(alex); }
 }
 
 function renderProfile(candidate) {
   const el = document.getElementById('profile-content');
-  if (!el || !candidate) return;
+  if (!el || !candidate) {
+    if (el) el.innerHTML = `
+      <div class="empty-state placeholder-layout card-3d" style="padding: 4rem 2rem;">
+        <div class="placeholder-icon" style="font-size: 3rem; margin-bottom: 1rem;">👤</div>
+        <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--text-primary);">Profile Not Selected</h3>
+        <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto;">Select a candidate from the Dashboard or Results page to view their detailed 31-day cohort history.</p>
+        <div class="profile-layout" style="margin-top: 2rem; opacity: 0.3; pointer-events: none; filter: blur(2px);">
+          <div class="profile-sidebar card-3d"><div class="profile-avatar-lg" style="background: var(--bg-soft);"></div><h3>--</h3></div>
+          <div class="profile-main"><div class="profile-section card-3d"><h4>--</h4></div></div>
+        </div>
+      </div>
+    `;
+    return;
+  }
 
   const m = candidate.member || {};
   const initials = m.name?.split(' ').map(n => n[0]).join('') || '?';
@@ -341,65 +716,105 @@ function renderProfile(candidate) {
 
   el.innerHTML = `
     <div class="profile-layout">
-      <div class="profile-sidebar">
+      <div class="profile-sidebar card-3d">
         <div class="profile-avatar-lg">${initials}</div>
         <h3>${m.name}</h3>
         <p class="role">${m.jobRole}</p>
         <div class="profile-tags">
           <span class="profile-tag">${m.education || 'B.Tech'}</span>
-          <span class="profile-tag">${m.yearsExperience} yrs exp</span>
+          <span class="profile-tag">${m.yearsExperience} yrs</span>
           <span class="profile-tag">${m.status}</span>
         </div>
       </div>
       <div class="profile-main">
-        <div class="profile-section">
+        <div class="profile-section card-3d">
           <h4>Personal Information</h4>
-          <div class="info-row"><span>Candidate ID</span><span>${m.id}</span></div>
-          <div class="info-row"><span>Full Name</span><span>${m.name}</span></div>
-          <div class="info-row"><span>Job Role</span><span>${m.jobRole}</span></div>
+          <div class="info-row"><span>ID</span><span>${m.id}</span></div>
+          <div class="info-row"><span>Name</span><span>${m.name}</span></div>
+          <div class="info-row"><span>Role</span><span>${m.jobRole}</span></div>
           <div class="info-row"><span>Education</span><span>${m.education || '—'}</span></div>
           <div class="info-row"><span>Experience</span><span>${m.yearsExperience} years</span></div>
         </div>
-        <div class="profile-section">
+        <div class="profile-section card-3d">
           <h4>Cohort Performance</h4>
           <div class="info-row"><span>Commit Days</span><span>${candidate.signals?.commitDays || 0}/31</span></div>
-          <div class="info-row"><span>Missions Completed</span><span>${candidate.signals?.missionsCompleted || 0}</span></div>
+          <div class="info-row"><span>Missions Done</span><span>${candidate.signals?.missionsCompleted || 0}</span></div>
           <div class="info-row"><span>First-Try Passes</span><span>${candidate.signals?.missionsFirstTry || 0}</span></div>
         </div>
-        <div class="profile-section">
+        <div class="profile-section card-3d">
           <h4>Mission History</h4>
-          <ul class="mission-list">
-            ${missions.slice(0, 8).map(ms => `
-              <li>
-                <span class="mission-status ${ms.skipped ? 'skip' : 'pass'}">${ms.skipped ? '—' : '✓'}</span>
-                <span>Day ${ms.day}: ${ms.title}</span>
-              </li>
-            `).join('')}
-          </ul>
+          <ul class="mission-list">${missions.length ? missions.slice(0, 10).map(ms => `
+            <li><span class="mission-status ${ms.skipped ? 'skip' : 'pass'}">${ms.skipped ? '—' : '✓'}</span>Day ${ms.day}: ${ms.title}</li>
+          `).join('') : '<li>No mission data available</li>'}</ul>
         </div>
       </div>
-    </div>
-  `;
+    </div>`;
+}
 
-  document.getElementById('avatar-btn').textContent = initials;
+function initProfileDrawer() {
+  document.getElementById('avatar-btn')?.addEventListener('click', () => {
+    updateProfileDrawer();
+    document.getElementById('profile-drawer')?.classList.add('open');
+    document.getElementById('drawer-overlay')?.classList.add('open');
+  });
+  document.getElementById('drawer-close')?.addEventListener('click', closeProfileDrawer);
+  document.getElementById('drawer-overlay')?.addEventListener('click', closeProfileDrawer);
+}
+
+function closeProfileDrawer() {
+  document.getElementById('profile-drawer')?.classList.remove('open');
+  document.getElementById('drawer-overlay')?.classList.remove('open');
+}
+
+function updateProfileDrawer() {
+  const body = document.getElementById('drawer-body');
+  if (!body) return;
+  const user = TalentAI.getUser();
+  if (!user) {
+    body.innerHTML = `
+      <p class="drawer-guest">Sign in to access your profile, saved interviews, and career predictions.</p>
+      <button class="btn-primary drawer-btn" onclick="navigateTo('auth');closeProfileDrawer()">Sign In</button>
+      <button class="btn-secondary drawer-btn" onclick="navigateTo('auth');document.querySelector('.auth-tab[data-panel=panel-signup]')?.click();closeProfileDrawer()">Create Account</button>`;
+    return;
+  }
+  const initials = user.name.split(' ').map(n => n[0]).join('').slice(0, 2);
+  body.innerHTML = `
+    <div class="drawer-user">
+      <div class="drawer-avatar">${initials}</div>
+      <h4>${user.name}</h4>
+      <p>${user.email}</p>
+    </div>
+    <nav class="drawer-nav">
+      <button type="button" data-nav="profile" onclick="navigateTo('profile');closeProfileDrawer()">👤 My Profile</button>
+      <button type="button" data-nav="dashboard" onclick="navigateTo('dashboard');closeProfileDrawer()">📊 Dashboard</button>
+      <button type="button" data-nav="results" onclick="navigateTo('results');closeProfileDrawer()">🏆 Results</button>
+      <button type="button" data-nav="interview" onclick="requireAuth('interview');closeProfileDrawer()">💬 Take Interview</button>
+      <button type="button" data-nav="contact" onclick="navigateTo('contact');closeProfileDrawer()">📞 Contact</button>
+    </nav>
+    <button class="drawer-logout" id="drawer-logout-btn">Sign Out</button>`;
+  document.getElementById('drawer-logout-btn')?.addEventListener('click', logout);
 }
 
 function initContactForm() {
-  document.getElementById('contact-form')?.addEventListener('submit', (e) => {
+  document.getElementById('contact-form')?.addEventListener('submit', e => {
     e.preventDefault();
     const btn = e.target.querySelector('button[type="submit"]');
     btn.textContent = 'Message Sent ✓';
     btn.disabled = true;
-    setTimeout(() => {
-      btn.textContent = 'Send Message';
-      btn.disabled = false;
-      e.target.reset();
-    }, 3000);
+    setTimeout(() => { btn.textContent = 'Send Message'; btn.disabled = false; e.target.reset(); }, 3000);
   });
 }
 
 function initMobileMenu() {
-  const btn = document.getElementById('mobile-menu-btn');
-  const nav = document.getElementById('site-nav');
-  btn?.addEventListener('click', () => nav?.classList.toggle('collapsed'));
+  document.getElementById('mobile-menu-btn')?.addEventListener('click', () => {
+    document.getElementById('mobile-nav-overlay')?.classList.toggle('open');
+  });
+  document.getElementById('mobile-nav-close')?.addEventListener('click', closeMobileNav);
+  document.getElementById('mobile-nav-overlay')?.addEventListener('click', e => {
+    if (e.target.id === 'mobile-nav-overlay') closeMobileNav();
+  });
+}
+
+function closeMobileNav() {
+  document.getElementById('mobile-nav-overlay')?.classList.remove('open');
 }

@@ -3,7 +3,10 @@
  * Preserves original API logic and state management.
  */
 const InterviewApp = (() => {
-  const API_BASE = window.location.origin;
+  function getApiBase() {
+    if (window.location.protocol === 'file:') return 'http://127.0.0.1:8000';
+    return window.location.origin;
+  }
 
   let candidatesList = [];
   let selectedCandidate = null;
@@ -48,7 +51,14 @@ const InterviewApp = (() => {
 
     bindCustomSelect();
     bindInterviewEvents();
-    initApp();
+    if (window.TalentAI?.candidates?.length) {
+      loadCandidates(window.TalentAI.candidates);
+    }
+  }
+
+  function loadCandidates(list) {
+    candidatesList = list || [];
+    populateCandidatesDropdown();
   }
 
   function bindCustomSelect() {
@@ -126,33 +136,6 @@ const InterviewApp = (() => {
     if (disabled) closeCustomSelect();
   }
 
-  async function initApp() {
-    try {
-      const res = await fetch(`${API_BASE}/api/candidates`);
-      if (res.ok) {
-        candidatesList = await res.json();
-        connectionBadge.textContent = 'API Server Online';
-        connectionBadge.style.backgroundColor = 'rgba(5, 150, 105, 0.12)';
-        connectionBadge.style.borderColor = 'rgba(5, 150, 105, 0.25)';
-        connectionBadge.style.color = '#059669';
-        populateCandidatesDropdown();
-        window.TalentAI?.onCandidatesLoaded?.(candidatesList);
-      } else {
-        showConnectionError();
-      }
-    } catch (err) {
-      console.error('Connection failed:', err);
-      showConnectionError();
-    }
-  }
-
-  function showConnectionError() {
-    connectionBadge.textContent = 'Offline / Connection Error';
-    connectionBadge.style.backgroundColor = 'rgba(220, 38, 38, 0.1)';
-    connectionBadge.style.borderColor = 'rgba(220, 38, 38, 0.25)';
-    connectionBadge.style.color = '#dc2626';
-  }
-
   function populateCandidatesDropdown() {
     candidateSelect.innerHTML = '<option value="">-- Choose Candidate --</option>';
     candidatesList.forEach((c, idx) => {
@@ -216,7 +199,7 @@ const InterviewApp = (() => {
     appendLoader();
 
     try {
-      const res = await fetch(`${API_BASE}/api/interview`, {
+      const res = await fetch(`${getApiBase()}/api/interview`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, candidate: selectedCandidate })
@@ -248,7 +231,7 @@ const InterviewApp = (() => {
     appendLoader();
 
     try {
-      const res = await fetch(`${API_BASE}/api/interview`, {
+      const res = await fetch(`${getApiBase()}/api/interview`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, message: text })
@@ -361,7 +344,7 @@ const InterviewApp = (() => {
 
   function getCandidates() { return candidatesList; }
 
-  return { init, animateProgressOnMount, getCandidates };
+  return { init, loadCandidates, animateProgressOnMount, getCandidates };
 })();
 
 document.addEventListener('DOMContentLoaded', () => InterviewApp.init());
