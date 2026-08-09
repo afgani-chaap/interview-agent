@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any, List
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 import os
 from pydantic import BaseModel
 
@@ -41,6 +42,10 @@ breeth_client = BreethClient()
 #    "evaluations": [str]
 # }
 sessions: Dict[str, Dict[str, Any]] = {}
+
+# Serve frontend static assets (CSS, JS)
+if os.path.isdir("assets"):
+    app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 
 class InterviewRequest(BaseModel):
     sessionId: str

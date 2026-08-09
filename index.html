@@ -1,871 +1,573 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Cohort Technical Interview Agent</title>
-  <!-- Google Font: Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    /* CSS Variables for Curated Color Palette */
-    :root {
-      --bg-dark: #090d16;
-      --card-bg: rgba(30, 41, 59, 0.45);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --primary-glow: linear-gradient(135deg, #3b82f6, #8b5cf6);
-      --accent-blue: #3b82f6;
-      --accent-purple: #8b5cf6;
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
-      --success-green: #10b981;
-      --warning-orange: #f59e0b;
-      --shadow-color: rgba(0, 0, 0, 0.3);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--bg-dark);
-      background-image: 
-        radial-gradient(at 10% 10%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-        radial-gradient(at 90% 90%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
-      background-attachment: fixed;
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      overflow-x: hidden;
-    }
-
-    header {
-      padding: 1.5rem 2rem;
-      border-bottom: 1px solid var(--card-border);
-      backdrop-filter: blur(12px);
-      background-color: rgba(9, 13, 22, 0.7);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    header h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      background: var(--primary-glow);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      letter-spacing: -0.025em;
-    }
-
-    .badge {
-      background-color: rgba(59, 130, 246, 0.15);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      color: #93c5fd;
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      font-size: 0.8rem;
-      font-weight: 500;
-    }
-
-    main {
-      flex: 1;
-      max-width: 1300px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 2rem;
-      display: grid;
-      grid-template-columns: 350px 1fr;
-      gap: 2rem;
-      align-items: stretch;
-    }
-
-    /* Left Sidebar: Controls & Stats */
-    .sidebar {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-
-    .sidebar-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      backdrop-filter: blur(16px);
-      border-radius: 16px;
-      padding: 1.5rem;
-      box-shadow: 0 8px 32px var(--shadow-color);
-    }
-
-    .sidebar-card h2 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      color: var(--text-main);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-    }
-
-    select, input, button {
-      width: 100%;
-      padding: 0.75rem 1rem;
-      background-color: rgba(15, 23, 42, 0.6);
-      border: 1px solid var(--card-border);
-      border-radius: 8px;
-      color: var(--text-main);
-      font-family: inherit;
-      font-size: 0.9rem;
-      outline: none;
-      transition: all 0.2s ease;
-    }
-
-    select:focus, input:focus {
-      border-color: var(--accent-blue);
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-    }
-
-    button.primary-btn {
-      background: var(--primary-glow);
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
-    }
-
-    button.primary-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
-    }
-
-    button.primary-btn:active {
-      transform: translateY(0);
-    }
-
-    button.primary-btn:disabled {
-      background: #1e293b;
-      color: var(--text-muted);
-      box-shadow: none;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .progress-item {
-      margin-bottom: 1.25rem;
-    }
-
-    .progress-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.85rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .progress-bar-outer {
-      width: 100%;
-      height: 8px;
-      background-color: rgba(15, 23, 42, 0.6);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-
-    .progress-bar-inner {
-      height: 100%;
-      width: 0%;
-      background: var(--primary-glow);
-      border-radius: 999px;
-      transition: width 0.4s ease;
-    }
-
-    .tag-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .day-tag {
-      background-color: rgba(139, 92, 246, 0.15);
-      border: 1px solid rgba(139, 92, 246, 0.3);
-      color: #c084fc;
-      font-size: 0.75rem;
-      padding: 0.2rem 0.5rem;
-      border-radius: 4px;
-    }
-
-    /* Right Main Panel: Chat & Dashboard */
-    .chat-container {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      backdrop-filter: blur(16px);
-      border-radius: 16px;
-      box-shadow: 0 8px 32px var(--shadow-color);
-      display: flex;
-      flex-direction: column;
-      height: 75vh;
-      min-height: 550px;
-      overflow: hidden;
-    }
-
-    .chat-header {
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid var(--card-border);
-      background-color: rgba(15, 23, 42, 0.2);
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .candidate-avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: var(--primary-glow);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: white;
-    }
-
-    .candidate-info h3 {
-      font-size: 1rem;
-      font-weight: 600;
-    }
-
-    .candidate-info p {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .chat-messages {
-      flex: 1;
-      padding: 1.5rem;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-    }
-
-    .message {
-      max-width: 75%;
-      padding: 1rem 1.25rem;
-      border-radius: 12px;
-      line-height: 1.5;
-      font-size: 0.95rem;
-      animation: slideIn 0.3s ease forwards;
-    }
-
-    @keyframes slideIn {
-      from { transform: translateY(12px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    .message.interviewer {
-      align-self: flex-start;
-      background-color: rgba(30, 41, 59, 0.8);
-      border-left: 4px solid var(--accent-blue);
-      border-top-left-radius: 0px;
-    }
-
-    .message.candidate {
-      align-self: flex-end;
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
-      border: 1px solid rgba(139, 92, 246, 0.25);
-      border-top-right-radius: 0px;
-    }
-
-    /* Typing Loader */
-    .typing-loader {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.25rem 0.5rem;
-    }
-
-    .typing-dot {
-      width: 8px;
-      height: 8px;
-      background-color: var(--accent-blue);
-      border-radius: 50%;
-      animation: typingGlow 1.2s infinite ease-in-out;
-    }
-
-    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-    @keyframes typingGlow {
-      0%, 100% { transform: scale(1); opacity: 0.4; }
-      50% { transform: scale(1.3); opacity: 1; }
-    }
-
-    .chat-input-area {
-      padding: 1.25rem 1.5rem;
-      border-top: 1px solid var(--card-border);
-      background-color: rgba(15, 23, 42, 0.3);
-      display: flex;
-      gap: 1rem;
-    }
-
-    .chat-input-area input {
-      flex: 1;
-      background-color: rgba(15, 23, 42, 0.8);
-    }
-
-    .chat-input-area button {
-      width: auto;
-      padding: 0.75rem 1.5rem;
-    }
-
-    /* Feedback Overlay screen */
-    .feedback-overlay {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-      padding: 1.5rem;
-      overflow-y: auto;
-      height: 100%;
-    }
-
-    .feedback-header {
-      text-align: center;
-      padding: 1rem 0;
-    }
-
-    .feedback-header h2 {
-      font-size: 1.6rem;
-      background: var(--primary-glow);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 0.5rem;
-    }
-
-    .feedback-summary {
-      background-color: rgba(30, 41, 59, 0.3);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.25rem;
-      line-height: 1.6;
-    }
-
-    .feedback-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-    }
-
-    .feedback-section {
-      background-color: rgba(30, 41, 59, 0.2);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 1.25rem;
-    }
-
-    .feedback-section h3 {
-      font-size: 1.1rem;
-      margin-bottom: 0.75rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .feedback-section.strengths h3 { color: var(--success-green); }
-    .feedback-section.gaps h3 { color: var(--warning-orange); }
-    .feedback-section.next h3 { color: var(--accent-blue); }
-
-    .feedback-list {
-      list-style-type: none;
-    }
-
-    .feedback-list li {
-      margin-bottom: 0.65rem;
-      position: relative;
-      padding-left: 1.25rem;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      color: var(--text-main);
-    }
-
-    .feedback-list li::before {
-      content: "•";
-      position: absolute;
-      left: 0;
-      font-size: 1.2rem;
-    }
-
-    .feedback-section.strengths .feedback-list li::before { color: var(--success-green); }
-    .feedback-section.gaps .feedback-list li::before { color: var(--warning-orange); }
-    .feedback-section.next .feedback-list li::before { color: var(--accent-blue); }
-
-    .welcome-screen {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 2rem;
-      gap: 1.5rem;
-    }
-
-    .welcome-screen h2 {
-      font-size: 1.8rem;
-      background: var(--primary-glow);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .welcome-screen p {
-      color: var(--text-muted);
-      max-width: 500px;
-      line-height: 1.6;
-    }
-
-    /* Utilities */
-    .hidden {
-      display: none !important;
-    }
-  </style>
+  <title>TalentAI — AI-Powered Interview Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/main.css">
+  <link rel="stylesheet" href="./assets/css/interview.css">
+  <link rel="stylesheet" href="./assets/css/enhancements.css">
 </head>
+
 <body>
 
-  <header>
-    <h1>AI Interview Agent</h1>
-    <div id="connection-badge" class="badge">Checking connection...</div>
-  </header>
+  <canvas id="bg-canvas" class="bg-canvas"></canvas>
 
-  <main>
-    <!-- Left Sidebar: Controls & Stats -->
-    <div class="sidebar">
-      <!-- Session Config -->
-      <div class="sidebar-card">
-        <h2>📋 Setup Session</h2>
-        <div class="form-group">
-          <label for="candidate-select">Select Candidate Profile</label>
-          <select id="candidate-select" disabled>
-            <option value="">Loading profiles...</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="session-id-input">Session ID</label>
-          <input type="text" id="session-id-input" value="session-abc">
-        </div>
-        <button id="start-btn" class="primary-btn" disabled>Start Interview</button>
+  <div class="ambient-light" aria-hidden="true">
+    <div class="shape-3d shape-1"></div>
+    <div class="shape-3d shape-2"></div>
+    <div class="shape-3d shape-3"></div>
+  </div>
+
+  <div class="floating-3d-scene" aria-hidden="true">
+    <div class="float-obj-3d obj-js" data-depth="0.15">
+      <div class="obj-inner brand-js">
+        <svg viewBox="0 0 24 24" width="32" height="32"><rect width="24" height="24" rx="4" fill="#F7DF1E"/><path d="M6.75 18.25h2.25v-5.25h-2.25v5.25zm5.25 0h2.25c0 1.25.75 2.25 2.25 2.25 1.5 0 2.25-.75 2.25-1.75 0-1.25-.75-1.75-2.25-2.25l-.75-.25c-2.25-.75-3.5-1.75-3.5-3.75 0-2.25 1.75-3.75 4.5-3.75 2.5 0 4 1.25 4.25 3.25h-2.25c-.25-1-.75-1.5-2-1.5-1.25 0-2 .75-2 1.5 0 1 .5 1.5 2 2l.75.25c2.5.75 3.75 1.75 3.75 3.75 0 2.5-2 4-4.75 4-2.75 0-4.5-1.5-4.75-3.75z" fill="#000000"/></svg>
+      </div>
+    </div>
+    <div class="float-obj-3d obj-google" data-depth="0.22">
+      <div class="obj-inner brand-google">
+        <svg viewBox="0 0 24 24" width="30" height="30"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+      </div>
+    </div>
+    <div class="float-obj-3d obj-amazon" data-depth="0.28">
+      <div class="obj-inner brand-amazon">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="#FF9900"><path d="M13.85 17.55c-2.48 1.83-6.1 2.78-9.2.82-1.3-.82-2.35-2-3-3.37-.3-.6-.62-1.25-.45-1.9.15-.55.72-.88 1.25-.7.53.18 1.08.45 1.58.75 2.22 1.35 4.9 2.05 7.48 1.48 1.2-.26 2.37-.85 3.32-1.63.4-.33.95-.7 1.45-.4.5.3.45.92.15 1.38-.5.78-1.4 1.87-2.58 2.57zM20.8 19.1c-.4.5-1.65 1.05-2.25 1.2-.55.15-1.05-.15-1.25-.65-.18-.5.12-1.05.52-1.35.7-.5 1.52-1.02 2.18-1.65.25-.25.6-.45.92-.35.4.15.55.6.38 1.0-.12.3-.3.6-.5.8z"/></svg>
+      </div>
+    </div>
+    <div class="float-obj-3d obj-microsoft" data-depth="0.18">
+      <div class="obj-inner brand-microsoft">
+        <svg viewBox="0 0 24 24" width="28" height="28"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="13" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="13" width="10" height="10" fill="#00A4EF"/><rect x="13" y="13" width="10" height="10" fill="#FFB900"/></svg>
+      </div>
+    </div>
+    <div class="float-obj-3d obj-meta" data-depth="0.32">
+      <div class="obj-inner brand-meta">
+        <svg viewBox="0 0 24 24" width="30" height="30" fill="#0668E1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.5h-2v-5h2v5zm0-7h-2V7.5h2v2z"/></svg>
+      </div>
+    </div>
+    <div class="float-obj-3d obj-apple" data-depth="0.15">
+      <div class="obj-inner brand-apple">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="#FFFFFF"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.32c.69-.84 1.15-2.01 1.02-3.18-1 .04-2.21.67-2.92 1.5-.64.74-1.2 1.94-1.05 3.09 1.12.09 2.26-.57 2.95-1.41z"/></svg>
+      </div>
+    </div>
+    <div class="float-obj-3d obj-netflix" data-depth="0.35">
+      <div class="obj-inner brand-netflix">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="#E50914"><path d="M5.398 0v24l4.58-1.583v-7.39l4.568 8.973H20V0h-4.58v7.39L10.852 0H5.398z"/></svg>
+      </div>
+    </div>
+    <div class="float-obj-3d obj-stripe" data-depth="0.25">
+      <div class="obj-inner brand-stripe">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="#635BFF"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.763-1.444 2.153-1.444 1.637 0 3.32.556 4.67 1.348V2.138A12.42 12.42 0 0 0 12.607 1C7.818 1 4.542 3.498 4.542 7.15c0 4.175 3.97 5.12 7.078 6.273 2.443.91 3.21 1.622 3.21 2.57 0 1.022-.954 1.69-2.54 1.69-1.927 0-4.04-.794-5.694-1.785v4.583A13.882 13.882 0 0 0 12.164 22c5.074 0 8.35-2.435 8.35-6.49 0-4.48-3.97-5.328-6.538-6.36z"/></svg>
+      </div>
+    </div>
+    <div class="float-obj-3d obj-uber" data-depth="0.30">
+      <div class="obj-inner brand-uber">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="#FFFFFF"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm3.5 12h-7a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5z"/></svg>
+      </div>
+    </div>
+    <div class="float-obj-3d obj-databricks" data-depth="0.16">
+      <div class="obj-inner brand-databricks">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="#FF3621"><path d="M12 2L2 7v10l10 5 10-5V7L12 2zm0 2.8L18.6 8 12 11.2 5.4 8 12 4.8zM4 9.6l7 3.5v6.5l-7-3.5V9.6zm16 6.5l-7 3.5v-6.5l7-3.5v6.5z"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-overlay" id="drawer-overlay"></div>
+  <aside class="profile-drawer" id="profile-drawer">
+    <div class="drawer-header">
+      <h3>Account</h3>
+      <button type="button" class="drawer-close" id="drawer-close" aria-label="Close">✕</button>
+    </div>
+    <div id="drawer-body"></div>
+  </aside>
+
+  <div class="mobile-nav-overlay" id="mobile-nav-overlay">
+    <div class="mobile-nav-panel">
+      <button type="button" class="mobile-nav-close" id="mobile-nav-close">✕</button>
+      <nav class="mobile-nav-links">
+        <button data-nav="home" type="button">🏠 Home</button>
+        <button data-nav="interview" type="button">💬 Take Interview</button>
+        <button data-nav="results" type="button">🏆 Results</button>
+        <button data-nav="dashboard" type="button">📊 Dashboard</button>
+        <button data-nav="profile" type="button">👤 Profile</button>
+        <button data-nav="resume" type="button">📄 ATS Grader</button>
+        <button data-nav="salary" type="button">💰 Salary AI</button>
+        <button data-nav="predictor" type="button">🎯 Career AI</button>
+        <button data-nav="contact" type="button">📞 Contact Us</button>
+        <button data-nav="auth" type="button">🔐 Sign In</button>
+      </nav>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container header-top">
+      <a href="#" class="logo" id="logo-link">
+        <div class="logo-mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <path d="M12 8V4H8" />
+            <rect width="16" height="12" x="4" y="8" rx="2" />
+          </svg></div>
+        <div class="logo-text"><strong>TalentAI</strong><span>Interview Platform</span></div>
+      </a>
+
+      <div class="header-search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <input type="search" id="search-input" placeholder="Search candidates, roles, companies…" autocomplete="off">
+        <div class="search-dropdown hidden" id="search-dropdown"></div>
       </div>
 
-      <!-- Live Interview Stats -->
-      <div class="sidebar-card">
-        <h2>📊 Interview Progress</h2>
-        
-        <!-- Questions Count -->
-        <div class="progress-item">
-          <div class="progress-labels">
-            <span>Questions Asked</span>
-            <span id="questions-count-label">0 / 8</span>
-          </div>
-          <div class="progress-bar-outer">
-            <div id="questions-progress-bar" class="progress-bar-inner" style="width: 0%"></div>
-          </div>
+      <div class="header-actions">
+        <div id="connection-badge" class="status-badge">Connecting…</div>
+        <div id="auth-guest" class="auth-buttons">
+          <button class="btn-ghost" id="btn-login-header" type="button">Log In</button>
+          <button class="btn-signup" id="btn-signup-header" type="button">Sign Up</button>
         </div>
-
-        <!-- Days Covered -->
-        <div class="progress-item">
-          <div class="progress-labels">
-            <span>Curriculum Days Covered</span>
-            <span id="days-count-label">0 / 4</span>
-          </div>
-          <div class="progress-bar-outer">
-            <div id="days-progress-bar" class="progress-bar-inner" style="width: 0%"></div>
-          </div>
-          <div class="tag-container" id="days-tags-container">
-            <!-- Dynamically populated tags -->
-          </div>
-        </div>
+        <button class="header-cta hidden" id="header-cta" type="button">Take Interview</button>
+        <button class="avatar-btn" id="avatar-btn" type="button" aria-label="Account menu">☰</button>
+        <button class="mobile-menu-btn" id="mobile-menu-btn" type="button" aria-label="Navigation menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
       </div>
     </div>
 
-    <!-- Right Panel: Conversation Hub -->
-    <div class="chat-container">
-      <!-- Chat Header -->
-      <div id="chat-header-bar" class="chat-header hidden">
-        <div class="candidate-avatar" id="avatar-initials">?</div>
-        <div class="candidate-info">
-          <h3 id="info-name">Candidate Name</h3>
-          <p id="info-role">Candidate Role & Exp</p>
-        </div>
+    <nav class="site-nav" id="site-nav">
+      <div class="container nav-inner">
+        <button class="nav-link active" data-nav="home" type="button">Home</button>
+        <button class="nav-link" data-nav="interview" type="button">Take Interview</button>
+        <button class="nav-link" data-nav="results" type="button">Results</button>
+        <button class="nav-link" data-nav="dashboard" type="button">Dashboard</button>
+        <button class="nav-link" data-nav="profile" type="button">Profile</button>
+        <button class="nav-link" data-nav="resume" type="button">ATS Grader</button>
+        <button class="nav-link" data-nav="salary" type="button">Salary AI</button>
+        <button class="nav-link" data-nav="predictor" type="button">Career AI</button>
+        <button class="nav-link" data-nav="contact" type="button">Contact Us</button>
       </div>
+    </nav>
+  </header>
 
-      <!-- Welcome screen before starting -->
-      <div id="welcome-screen" class="welcome-screen">
-        <h2>Technical Interview Portal</h2>
-        <p>This agent conducts a custom multi-turn technical interview based on the candidate's learning history throughout the 31-day AI Cohort.</p>
-        <p class="badge" style="max-width: fit-content;">Select a profile on the left to begin.</p>
-      </div>
+  <div class="app-shell">
 
-      <!-- Conversation Area -->
-      <div id="chat-messages" class="chat-messages hidden">
-        <!-- Messages appended here -->
-      </div>
-
-      <!-- Feedback Area (ends the chat) -->
-      <div id="feedback-overlay" class="feedback-overlay hidden">
-        <div class="feedback-header">
-          <h2>Evaluation & Feedback Report</h2>
-          <p>The interview is completed. Below is the grading summary.</p>
+    <!-- HOME -->
+    <section id="section-home" class="page-section active">
+      <div class="container hero-section">
+        <div class="hero-carousel" id="hero-carousel">
+          <div class="carousel-track" id="carousel-track"></div>
+          <button class="carousel-arrow prev" id="carousel-prev" aria-label="Previous">‹</button>
+          <button class="carousel-arrow next" id="carousel-next" aria-label="Next">›</button>
+          <div class="carousel-controls" id="carousel-dots"></div>
         </div>
-        <div class="feedback-summary" id="report-summary">
-          <!-- Summary paragraph -->
+        <p class="swipe-hint">← Swipe or drag to explore success stories →</p>
+
+        <div class="stats-bar">
+          <div class="stat-card card-3d"><strong data-count="2400" data-suffix="+">0</strong><span>Interviews
+              Conducted</span></div>
+          <div class="stat-card card-3d"><strong data-count="89" data-suffix="%"
+              data-percent="true">0</strong><span>Placement Rate</span></div>
+          <div class="stat-card card-3d"><strong data-count="31">0</strong><span>Curriculum Days</span></div>
+          <div class="stat-card card-3d"><strong data-count="50" data-suffix="+">0</strong><span>Partner
+              Companies</span></div>
         </div>
-        <div class="feedback-grid">
-          <div class="feedback-section strengths">
-            <h3>✅ Key Strengths</h3>
-            <ul class="feedback-list" id="report-strengths">
-              <!-- Bullet points -->
-            </ul>
+
+        <div class="partners-scroller">
+          <h2 class="offers-title">Get offers from <span class="highlight-count">800+</span> top companies</h2>
+          
+          <!-- ROW 1: SCROLLS LEFT -->
+          <div class="marquee-wrapper row-left">
+            <div class="marquee marquee-track-left">
+              <span><svg viewBox="0 0 24 24" fill="#FFFFFF"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm3.5 12h-7a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5z"/></svg> Uber</span>
+              <span><svg viewBox="0 0 24 24" fill="#00A1E0"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg> Salesforce</span>
+              <span><svg viewBox="0 0 24 24" fill="#FF9900"><path d="M13.85 17.55c-2.48 1.83-6.1 2.78-9.2.82-1.3-.82-2.35-2-3-3.37-.3-.6-.62-1.25-.45-1.9.15-.55.72-.88 1.25-.7.53.18 1.08.45 1.58.75 2.22 1.35 4.9 2.05 7.48 1.48 1.2-.26 2.37-.85 3.32-1.63.4-.33.95-.7 1.45-.4.5.3.45.92.15 1.38-.5.78-1.4 1.87-2.58 2.57zM20.8 19.1c-.4.5-1.65 1.05-2.25 1.2-.55.15-1.05-.15-1.25-.65-.18-.5.12-1.05.52-1.35.7-.5 1.52-1.02 2.18-1.65.25-.25.6-.45.92-.35.4.15.55.6.38 1.0-.12.3-.3.6-.5.8z"/></svg> Amazon</span>
+              <span><svg viewBox="0 0 24 24" fill="#0668E1"><path d="M16.48 3.5c-2.18 0-3.95 1.16-5.48 2.92C9.47 4.66 7.7 3.5 5.52 3.5 2.47 3.5 0 6.03 0 9.25c0 4.19 4.34 8.02 9.77 12.06.74.55 1.72.55 2.46 0C17.66 17.27 22 13.44 22 9.25c0-3.22-2.47-5.75-5.52-5.75z"/></svg> Meta</span>
+              <span><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg> Google</span>
+              <span><svg viewBox="0 0 24 24"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="13" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="13" width="10" height="10" fill="#00A4EF"/><rect x="13" y="13" width="10" height="10" fill="#FFB900"/></svg> Microsoft</span>
+              <span><svg viewBox="0 0 24 24" fill="#5F259F"><path d="M12 2A10 10 0 1 0 22 12 10 10 0 0 0 12 2zm2 10.5h-2v4h-2v-9h4a2.5 2.5 0 0 1 0 5zm-2-2h2a.5.5 0 0 0 0-1h-2z"/></svg> PhonePe</span>
+              <span><svg viewBox="0 0 24 24" fill="#CB202D"><path d="M12 2A10 10 0 1 0 22 12 10 10 0 0 0 12 2zm3.5 6.5h-5.2l4.8 5.5h-5.1v1.5h7v-1.5l-4.8-5.5h5.3z"/></svg> Zomato</span>
+              <span><svg viewBox="0 0 24 24" fill="#0052FF"><path d="M12 2A10 10 0 1 0 22 12 10 10 0 0 0 12 2zm-3.5 13.5A3.5 3.5 0 1 1 12 12a.75.75 0 0 0 .75-.75A5 5 0 1 0 7 15.5a.75.75 0 0 0 1.5 0z"/></svg> Coinbase</span>
+              
+              <!-- Duplicate for Seamless Infinity -->
+              <span><svg viewBox="0 0 24 24" fill="#FFFFFF"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm3.5 12h-7a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5z"/></svg> Uber</span>
+              <span><svg viewBox="0 0 24 24" fill="#00A1E0"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg> Salesforce</span>
+              <span><svg viewBox="0 0 24 24" fill="#FF9900"><path d="M13.85 17.55c-2.48 1.83-6.1 2.78-9.2.82-1.3-.82-2.35-2-3-3.37-.3-.6-.62-1.25-.45-1.9.15-.55.72-.88 1.25-.7.53.18 1.08.45 1.58.75 2.22 1.35 4.9 2.05 7.48 1.48 1.2-.26 2.37-.85 3.32-1.63.4-.33.95-.7 1.45-.4.5.3.45.92.15 1.38-.5.78-1.4 1.87-2.58 2.57zM20.8 19.1c-.4.5-1.65 1.05-2.25 1.2-.55.15-1.05-.15-1.25-.65-.18-.5.12-1.05.52-1.35.7-.5 1.52-1.02 2.18-1.65.25-.25.6-.45.92-.35.4.15.55.6.38 1.0-.12.3-.3.6-.5.8z"/></svg> Amazon</span>
+              <span><svg viewBox="0 0 24 24" fill="#0668E1"><path d="M16.48 3.5c-2.18 0-3.95 1.16-5.48 2.92C9.47 4.66 7.7 3.5 5.52 3.5 2.47 3.5 0 6.03 0 9.25c0 4.19 4.34 8.02 9.77 12.06.74.55 1.72.55 2.46 0C17.66 17.27 22 13.44 22 9.25c0-3.22-2.47-5.75-5.52-5.75z"/></svg> Meta</span>
+              <span><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg> Google</span>
+              <span><svg viewBox="0 0 24 24"><rect x="1" y="1" width="10" height="10" fill="#F25022"/><rect x="13" y="1" width="10" height="10" fill="#7FBA00"/><rect x="1" y="13" width="10" height="10" fill="#00A4EF"/><rect x="13" y="13" width="10" height="10" fill="#FFB900"/></svg> Microsoft</span>
+            </div>
           </div>
-          <div class="feedback-section gaps">
-            <h3>⚠️ Knowledge Gaps</h3>
-            <ul class="feedback-list" id="report-gaps">
-              <!-- Bullet points -->
-            </ul>
+
+          <!-- ROW 2: SCROLLS RIGHT (OPPOSITE DIRECTION) -->
+          <div class="marquee-wrapper row-right">
+            <div class="marquee marquee-track-right">
+              <span><svg viewBox="0 0 24 24" fill="#007CFF"><path d="M12 2L4 22h4.5l2.5-6.5h4L16 22h4.5L12 2zm-1 9.5L13.5 5 16 11.5h-5z"/></svg> Razorpay</span>
+              <span><svg viewBox="0 0 24 24" fill="#1A1F71"><path d="M9 19l2-14h3.5L12.5 19H9zm11.5-14c-.7 0-1.8.3-2.5 2L15 19h3.5l.6-3h2.3l.3 3H24l-2.1-14h-1.4zm-2 8.5l.9-4.8.5 4.8h-1.4zM4.3 5L0 19h3.6l3.5-14H4.3z"/></svg> VISA</span>
+              <span><svg viewBox="0 0 24 24" fill="#0052CC"><path d="M7.7 13.6c-.3-.5-.7-1-1.3-1.3L1 21.6c0 .4.2.8.6.9.4.1.8 0 1.1-.3l5-8.6zm4.8-11.3c-.4-.5-1-.7-1.5-.5-.5.2-.9.7-1 1.2l-3.3 15c-.1.5.1 1 .5 1.3.4.3.9.4 1.4.2l12.4-5.3c.5-.2.8-.7.8-1.2 0-.5-.3-1-.8-1.2L12.5 2.3z"/></svg> Atlassian</span>
+              <span><svg viewBox="0 0 24 24" fill="#003087"><path d="M7.005 23l.977-6.18h2.38c4.27 0 7.425-1.734 8.358-6.425.4-2.02.046-3.565-.965-4.664C16.666 4.54 14.545 4 11.83 4H4.55a.8.8 0 0 0-.792.675L1.005 22.18a.6.6 0 0 0 .593.69h4.814a.6.6 0 0 0 .593-.52z"/></svg> PayPal</span>
+              <span><svg viewBox="0 0 24 24" fill="#FFFFFF"><path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4zm0 4.5l5 2.22v4.28c0 3.33-2.3 6.44-5 7.2-2.7-.76-5-3.87-5-7.2V8.72l5-2.22z"/></svg> CRED</span>
+              <span><svg viewBox="0 0 24 24" fill="#1BA0D7"><path d="M3 13v4h2v-4H3zm4-4v8h2V9H7zm4-4v12h2V5h-2zm4 4v8h2V9h-2zm4 4v4h2v-4h-2z"/></svg> Cisco</span>
+              <span><svg viewBox="0 0 24 24" fill="#635BFF"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.763-1.444 2.153-1.444 1.637 0 3.32.556 4.67 1.348V2.138A12.42 12.42 0 0 0 12.607 1C7.818 1 4.542 3.498 4.542 7.15c0 4.175 3.97 5.12 7.078 6.273 2.443.91 3.21 1.622 3.21 2.57 0 1.022-.954 1.69-2.54 1.69-1.927 0-4.04-.794-5.694-1.785v4.583A13.882 13.882 0 0 0 12.164 22c5.074 0 8.35-2.435 8.35-6.49 0-4.48-3.97-5.328-6.538-6.36z"/></svg> Stripe</span>
+              <span><svg viewBox="0 0 24 24" fill="#E50914"><path d="M5.398 0v24l4.58-1.583v-7.39l4.568 8.973H20V0h-4.58v7.39L10.852 0H5.398z"/></svg> Netflix</span>
+              <span><svg viewBox="0 0 24 24" fill="#2874F0"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg> Flipkart</span>
+              
+              <!-- Duplicate for Seamless Infinity -->
+              <span><svg viewBox="0 0 24 24" fill="#007CFF"><path d="M12 2L4 22h4.5l2.5-6.5h4L16 22h4.5L12 2zm-1 9.5L13.5 5 16 11.5h-5z"/></svg> Razorpay</span>
+              <span><svg viewBox="0 0 24 24" fill="#1A1F71"><path d="M9 19l2-14h3.5L12.5 19H9zm11.5-14c-.7 0-1.8.3-2.5 2L15 19h3.5l.6-3h2.3l.3 3H24l-2.1-14h-1.4zm-2 8.5l.9-4.8.5 4.8h-1.4zM4.3 5L0 19h3.6l3.5-14H4.3z"/></svg> VISA</span>
+              <span><svg viewBox="0 0 24 24" fill="#0052CC"><path d="M7.7 13.6c-.3-.5-.7-1-1.3-1.3L1 21.6c0 .4.2.8.6.9.4.1.8 0 1.1-.3l5-8.6zm4.8-11.3c-.4-.5-1-.7-1.5-.5-.5.2-.9.7-1 1.2l-3.3 15c-.1.5.1 1 .5 1.3.4.3.9.4 1.4.2l12.4-5.3c.5-.2.8-.7.8-1.2 0-.5-.3-1-.8-1.2L12.5 2.3z"/></svg> Atlassian</span>
+              <span><svg viewBox="0 0 24 24" fill="#003087"><path d="M7.005 23l.977-6.18h2.38c4.27 0 7.425-1.734 8.358-6.425.4-2.02.046-3.565-.965-4.664C16.666 4.54 14.545 4 11.83 4H4.55a.8.8 0 0 0-.792.675L1.005 22.18a.6.6 0 0 0 .593.69h4.814a.6.6 0 0 0 .593-.52z"/></svg> PayPal</span>
+              <span><svg viewBox="0 0 24 24" fill="#635BFF"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.763-1.444 2.153-1.444 1.637 0 3.32.556 4.67 1.348V2.138A12.42 12.42 0 0 0 12.607 1C7.818 1 4.542 3.498 4.542 7.15c0 4.175 3.97 5.12 7.078 6.273 2.443.91 3.21 1.622 3.21 2.57 0 1.022-.954 1.69-2.54 1.69-1.927 0-4.04-.794-5.694-1.785v4.583A13.882 13.882 0 0 0 12.164 22c5.074 0 8.35-2.435 8.35-6.49 0-4.48-3.97-5.328-6.538-6.36z"/></svg> Stripe</span>
+            </div>
           </div>
         </div>
-        <div class="feedback-section next" style="margin-top: 1rem;">
-          <h3>🚀 Recommended Next Steps</h3>
-          <ul class="feedback-list" id="report-next">
-            <!-- Bullet points -->
+      </div>
+
+      <div class="container fields-section">
+        <div class="section-header">
+          <h2>Choose Your Interview Field</h2>
+          <p>Select a specialization for your curriculum-aware adaptive interview.</p>
+        </div>
+        <div class="fields-grid" id="fields-grid"></div>
+        <div class="fields-cta">
+          <button class="btn-primary" id="start-interview-btn" disabled>Start Interview →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAREER PREDICTOR (own dedicated page) -->
+    <section id="section-predictor" class="page-section">
+      <div class="container predictor-section">
+        <div class="section-header">
+          <h2>🎯 Career Role Predictor</h2>
+          <p>Select your skills — our AI predicts the best-fit job roles and salary ranges for you.</p>
+        </div>
+        <div class="predictor-box card-3d">
+          <div class="skills-grid" id="skills-grid"></div>
+          <button class="btn-primary" id="predict-btn" type="button">Predict My Role</button>
+          <div class="prediction-results" id="prediction-results">
+            <p class="predict-hint">Pick skills above and click predict to see your top role matches.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AUTH -->
+    <section id="section-auth" class="page-section">
+      <div class="container auth-section">
+        <div class="auth-card card-3d">
+          <div class="auth-tabs">
+            <button class="auth-tab active" data-panel="panel-login" type="button">Sign In</button>
+            <button class="auth-tab" data-panel="panel-signup" type="button">Sign Up</button>
+          </div>
+          <div id="panel-login" class="auth-panel active">
+            <h2>Welcome back</h2>
+            <p>Sign in to access interviews, results, and your career dashboard.</p>
+            <form id="auth-login-form">
+              <div class="form-row"><label for="login-email">Email</label><input type="email" id="login-email"
+                  placeholder="you@email.com" required></div>
+              <div class="form-row"><label for="login-password">Password</label><input type="password"
+                  id="login-password" placeholder="••••••••" required></div>
+              <button type="submit" class="btn-primary btn-full">Sign In</button>
+            </form>
+          </div>
+          <div id="panel-signup" class="auth-panel">
+            <h2>Create account</h2>
+            <p>Join thousands of candidates preparing for top tech interviews.</p>
+            <form id="auth-signup-form">
+              <div class="form-row"><label for="signup-name">Full Name</label><input type="text" id="signup-name"
+                  placeholder="Your name" required></div>
+              <div class="form-row"><label for="signup-email">Email</label><input type="email" id="signup-email"
+                  placeholder="you@email.com" required></div>
+              <div class="form-row"><label for="signup-password">Password</label><input type="password"
+                  id="signup-password" placeholder="••••••••" required></div>
+              <button type="submit" class="btn-primary btn-full">Create Account</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTERVIEW (unchanged logic IDs) -->
+    <section id="section-interview" class="page-section">
+      <div class="container interview-section">
+        <div class="section-header">
+          <h2>Live Interview Session</h2>
+          <p>Select a candidate profile and begin the AI-powered technical evaluation.</p>
+        </div>
+        <div class="interview-layout">
+          <div class="interview-sidebar">
+            <div class="panel-card card-3d">
+              <h2><span class="panel-icon">📋</span> Setup Session</h2>
+              <div id="selected-field-banner" class="selected-field-banner hidden"></div>
+              <div class="form-group">
+                <label for="candidate-select">Select Candidate Profile</label>
+                <div class="select-wrapper">
+                  <select id="candidate-select" class="select-native" disabled tabindex="-1" aria-hidden="true">
+                    <option value="">Loading…</option>
+                  </select>
+                  <div id="custom-select" class="custom-select">
+                    <button type="button" id="custom-select-trigger" class="custom-select-trigger disabled"
+                      aria-expanded="false"><span class="placeholder">Loading…</span></button>
+                    <svg class="custom-select-chevron" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                      fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                    <div id="custom-select-options" class="custom-select-options"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="session-id-input">Session ID</label>
+                <input type="text" id="session-id-input" value="session-abc">
+              </div>
+              <button id="start-btn" disabled>Start Interview</button>
+              <p class="interview-hint">Profiles: Alex Turner, Sarah Johnson, Emily Chen & more.</p>
+            </div>
+            <div class="panel-card card-3d">
+              <h2><span class="panel-icon">📊</span> Interview Progress</h2>
+              <div class="progress-item">
+                <div class="progress-labels"><span>Questions Asked</span><span id="questions-count-label">0 / 8</span>
+                </div>
+                <div class="progress-bar-outer glow">
+                  <div id="questions-progress-bar" class="progress-bar-inner" style="width:0%"></div>
+                </div>
+              </div>
+              <div class="progress-item">
+                <div class="progress-labels"><span>Curriculum Days</span><span id="days-count-label">0 / 4</span></div>
+                <div class="progress-bar-outer glow">
+                  <div id="days-progress-bar" class="progress-bar-inner" style="width:0%"></div>
+                </div>
+                <div class="tag-container" id="days-tags-container"></div>
+              </div>
+            </div>
+          </div>
+          <div class="panel-card chat-container card-3d">
+            <div id="chat-header-bar" class="chat-header hidden">
+              <div class="candidate-avatar" id="avatar-initials">?</div>
+              <div class="candidate-info">
+                <h3 id="info-name">Candidate</h3>
+                <p id="info-role">Role</p>
+              </div>
+            </div>
+            <div id="welcome-screen" class="welcome-screen">
+              <div class="welcome-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="1.75">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                </svg></div>
+              <h2>Technical Interview Portal</h2>
+              <p>Custom multi-turn interview based on 31-day AI Cohort learning history.</p>
+              <div class="welcome-features"><span class="welcome-feature">Adaptive</span><span
+                  class="welcome-feature">Curriculum-aware</span><span class="welcome-feature">Instant feedback</span>
+              </div>
+            </div>
+            <div id="chat-messages" class="chat-messages hidden"></div>
+            <div id="feedback-overlay" class="feedback-overlay hidden">
+              <div class="feedback-header">
+                <h2>Evaluation Report</h2>
+                <p>Interview completed — grading summary below.</p>
+              </div>
+              <div class="feedback-summary" id="report-summary"></div>
+              <div class="feedback-grid">
+                <div class="feedback-section strengths">
+                  <h3>✅ Strengths</h3>
+                  <ul class="feedback-list" id="report-strengths"></ul>
+                </div>
+                <div class="feedback-section gaps">
+                  <h3>⚠️ Gaps</h3>
+                  <ul class="feedback-list" id="report-gaps"></ul>
+                </div>
+              </div>
+              <div class="feedback-section next">
+                <h3>🚀 Next Steps</h3>
+                <ul class="feedback-list" id="report-next"></ul>
+              </div>
+            </div>
+            <div id="input-area" class="chat-input-area hidden">
+              <input type="text" id="chat-input" placeholder="Type your answer…" autocomplete="off">
+              <button id="send-btn">Submit</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-results" class="page-section">
+      <div class="container">
+        <div class="section-header">
+          <h2>Placement Results</h2>
+          <p>Interview scores and placement outcomes for cohort candidates.</p>
+        </div>
+        <div class="results-grid" id="results-grid"></div>
+      </div>
+    </section>
+
+    <section id="section-dashboard" class="page-section">
+      <div class="container">
+        <div class="section-header">
+          <h2>Admin Dashboard</h2>
+          <p>Real-time cohort metrics, candidate pipeline, and global leaderboard.</p>
+        </div>
+        <div class="dashboard-tabs">
+          <button class="dash-tab active" data-panel="panel-analytics" type="button">📊 Analytics</button>
+          <button class="dash-tab" data-panel="panel-leaderboard" type="button">🏆 Leaderboard</button>
+        </div>
+        <div id="panel-analytics" class="dashboard-panel active">
+          <div id="dashboard-content"></div>
+        </div>
+        <div id="panel-leaderboard" class="dashboard-panel">
+          <div id="leaderboard-content"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-profile" class="page-section">
+      <div class="container">
+        <div class="section-header">
+          <h2>Candidate Profile</h2>
+          <p>Detailed performance analytics and 31-day cohort tracking.</p>
+        </div>
+        <div id="profile-content"></div>
+      </div>
+    </section>
+
+    <!-- NEW UNIQUE FEATURES -->
+    <section id="section-resume" class="page-section">
+      <div class="container resume-section">
+        <div class="section-header">
+          <h2>AI Resume ATS Grader</h2>
+          <p>Instant breakdown of formatting, keywords, and parsing issues before you apply.</p>
+        </div>
+        <div class="resume-layout">
+          <div class="upload-card card-3d">
+            <div class="upload-icon">📄</div>
+            <h3>Upload Resume</h3>
+            <p>Drag and drop your PDF here, or click to scan.</p>
+            <button class="btn-primary" type="button" id="ats-scan-btn">Scan Resume</button>
+          </div>
+          <div class="ats-results hidden card-3d" id="ats-results">
+            <h3>ATS Analysis Score: <span id="ats-score-val" class="ats-score-text">88/100</span></h3>
+            <div class="progress-bar-outer glow ats-progress-wrapper">
+              <div id="ats-score-bar" class="progress-bar-inner ats-progress-inner" style="width:0%;"></div>
+            </div>
+            <div id="ats-breakdown"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-salary" class="page-section">
+      <div class="container salary-section">
+        <div class="section-header">
+          <h2>Salary Negotiation Roleplay</h2>
+          <p>Practice your counter-offer strategy with our AI Recruiter.</p>
+        </div>
+        <div class="salary-layout card-3d">
+          <div class="salary-setup">
+            <h3>Current Offer Details</h3>
+            <input type="text" id="salary-base" class="salary-input" placeholder="Base Salary (e.g., ₹25 LPA)">
+            <input type="text" id="salary-role" class="salary-input" placeholder="Role (e.g., SDE-2)">
+            <button class="btn-primary btn-full" type="button" id="salary-start-btn">Start Roleplay</button>
+          </div>
+          <div class="salary-chat-area">
+            <div class="salary-chat" id="salary-chat">
+              <p class="salary-hint">Set up your offer details and click Start Roleplay.</p>
+            </div>
+            <div class="salary-input-row">
+              <input type="text" id="salary-user-input" class="salary-input salary-field"
+                placeholder="Type your counter-offer...">
+              <button class="salary-send-btn" id="salary-send-btn" type="button">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-contact" class="page-section">
+      <div class="container">
+        <div class="section-header">
+          <h2>Contact Us</h2>
+          <p>Enterprise partnerships, enrollment, and support.</p>
+        </div>
+        <div class="contact-layout">
+          <form class="contact-form card-3d" id="contact-form">
+            <div class="form-row"><label for="contact-name">Name</label><input type="text" id="contact-name" required>
+            </div>
+            <div class="form-row"><label for="contact-email">Email</label><input type="email" id="contact-email"
+                required></div>
+            <div class="form-row"><label for="contact-subject">Subject</label><select id="contact-subject">
+                <option>Partnership</option>
+                <option>Enrollment</option>
+                <option>Support</option>
+              </select></div>
+            <div class="form-row"><label for="contact-message">Message</label><textarea id="contact-message"
+                required></textarea></div>
+            <button type="submit" class="btn-primary">Send Message</button>
+          </form>
+          <div class="contact-info">
+            <div class="branch-card card-3d">
+              <h4>🏢 Bangalore HQ</h4>
+              <p>Koramangala, Bengaluru 560034<br>+91 80 4567 8900</p><span class="branch-tag">HQ</span>
+            </div>
+            <div class="branch-card card-3d">
+              <h4>🏙️ Mumbai</h4>
+              <p>BKC, Mumbai 400051<br>+91 22 3456 7890</p><span class="branch-tag">West</span>
+            </div>
+            <div class="branch-card card-3d">
+              <h4>🌆 Hyderabad</h4>
+              <p>HITEC City 500081<br>+91 40 2345 6789</p><span class="branch-tag">South</span>
+            </div>
+            <div class="branch-card card-3d">
+              <h4>🏛️ Delhi NCR</h4>
+              <p>Cyber City, Gurugram<br>+91 124 456 7890</p><span class="branch-tag">North</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand"><strong>TalentAI</strong>
+          <p>TalentAI Interview Platform — AI-powered talent evaluation for the 31-Day Cohort.</p>
+        </div>
+        <div class="footer-col">
+          <h5>Platform</h5>
+          <ul>
+            <li><a href="#" data-nav="interview">Interview</a></li>
+            <li><a href="#" data-nav="results">Results</a></li>
+            <li><a href="#" data-nav="dashboard">Dashboard</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h5>Company</h5>
+          <ul>
+            <li><a href="#" data-nav="contact">Contact</a></li>
+            <li><a href="#" data-nav="auth">Sign In</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h5>Reach</h5>
+          <ul>
+            <li><a href="mailto:hello@talentai.com">hello@talentai.com</a></li>
+            <li><a href="/docs" target="_blank">API Docs</a></li>
           </ul>
         </div>
       </div>
-
-      <!-- Input Bar -->
-      <div id="input-area" class="chat-input-area hidden">
-        <input type="text" id="chat-input" placeholder="Type your answer here..." autocomplete="off">
-        <button id="send-btn" class="primary-btn">Submit Answer</button>
-      </div>
+      <div class="footer-bottom"><span>© 2026 TalentAI · Hackathon Demo</span></div>
     </div>
-  </main>
+  </footer>
 
-  <script>
-    // Constants
-    const API_BASE = window.location.origin;
-
-    // DOM Elements
-    const connectionBadge = document.getElementById('connection-badge');
-    const candidateSelect = document.getElementById('candidate-select');
-    const sessionIdInput = document.getElementById('session-id-input');
-    const startBtn = document.getElementById('start-btn');
-    
-    const welcomeScreen = document.getElementById('welcome-screen');
-    const chatHeaderBar = document.getElementById('chat-header-bar');
-    const chatMessages = document.getElementById('chat-messages');
-    const feedbackOverlay = document.getElementById('feedback-overlay');
-    const inputArea = document.getElementById('input-area');
-    
-    const chatInput = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('send-btn');
-    
-    const avatarInitials = document.getElementById('avatar-initials');
-    const infoName = document.getElementById('info-name');
-    const infoRole = document.getElementById('info-role');
-
-    const questionsCountLabel = document.getElementById('questions-count-label');
-    const questionsProgressBar = document.getElementById('questions-progress-bar');
-    const daysCountLabel = document.getElementById('days-count-label');
-    const daysProgressBar = document.getElementById('days-progress-bar');
-    const daysTagsContainer = document.getElementById('days-tags-container');
-
-    // State Variables
-    let candidatesList = [];
-    let selectedCandidate = null;
-    let sessionId = "";
-    let questionCount = 0;
-    let daysCovered = new Set();
-
-    // 1. Initial Connection Checks and Data Fetching
-    async function initApp() {
-      try {
-        // Fetch candidates list
-        const res = await fetch(`${API_BASE}/api/candidates`);
-        if (res.ok) {
-          candidatesList = await res.json();
-          connectionBadge.textContent = "API Server Online";
-          connectionBadge.style.backgroundColor = "rgba(16, 185, 129, 0.15)";
-          connectionBadge.style.borderColor = "rgba(16, 185, 129, 0.3)";
-          connectionBadge.style.color = "#a7f3d0";
-          
-          populateCandidatesDropdown();
-        } else {
-          showConnectionError();
-        }
-      } catch (err) {
-        console.error("Connection failed:", err);
-        showConnectionError();
-      }
-    }
-
-    function showConnectionError() {
-      connectionBadge.textContent = "Offline / Connection Error";
-      connectionBadge.style.backgroundColor = "rgba(239, 68, 68, 0.15)";
-      connectionBadge.style.borderColor = "rgba(239, 68, 68, 0.3)";
-      connectionBadge.style.color = "#fca5a5";
-    }
-
-    function populateCandidatesDropdown() {
-      candidateSelect.innerHTML = '<option value="">-- Choose Candidate --</option>';
-      candidatesList.forEach((c, idx) => {
-        const member = c.member || {};
-        const option = document.createElement('option');
-        option.value = idx;
-        option.textContent = `${member.name} (${member.jobRole})`;
-        candidateSelect.appendChild(option);
-      });
-      candidateSelect.disabled = false;
-    }
-
-    // Dropdown change listener
-    candidateSelect.addEventListener('change', () => {
-      const idx = candidateSelect.value;
-      if (idx !== "") {
-        selectedCandidate = candidatesList[idx];
-        startBtn.disabled = false;
-        
-        // Generate random session id to avoid conflicts
-        sessionIdInput.value = `session-${selectedCandidate.member.id}-${Math.floor(Math.random() * 1000)}`;
-      } else {
-        selectedCandidate = null;
-        startBtn.disabled = true;
-      }
-    });
-
-    // 2. Start Interview
-    startBtn.addEventListener('click', async () => {
-      if (!selectedCandidate) return;
-      
-      sessionId = sessionIdInput.value.trim() || `session-def-${Date.now()}`;
-      
-      // Update UI elements to show chat layout
-      welcomeScreen.classList.add('hidden');
-      chatHeaderBar.classList.remove('hidden');
-      chatMessages.classList.remove('hidden');
-      inputArea.classList.remove('hidden');
-      feedbackOverlay.classList.add('hidden');
-      
-      // Lock settings sidebar controls
-      candidateSelect.disabled = true;
-      sessionIdInput.disabled = true;
-      startBtn.disabled = true;
-      
-      // Reset counters and stats
-      questionCount = 0;
-      daysCovered.clear();
-      updateProgressUI();
-      chatMessages.innerHTML = '';
-      
-      // Render Candidate Avatar details
-      const member = selectedCandidate.member || {};
-      infoName.textContent = member.name;
-      infoRole.textContent = `${member.jobRole} · ${member.yearsExperience} yrs experience`;
-      avatarInitials.textContent = member.name.split(' ').map(n => n[0]).join('');
-      
-      appendLoader();
-
-      // Call Start Endpoint
-      try {
-        const res = await fetch(`${API_BASE}/api/interview`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: sessionId,
-            candidate: selectedCandidate
-          })
-        });
-        
-        removeLoader();
-        
-        if (res.ok) {
-          const data = await res.json();
-          appendMessage(data.reply, 'interviewer');
-          
-          // The first turn increments questions count
-          questionCount = 1;
-          // Extract target day if possible
-          // Note: Local mock uses deterministic questions covering different days
-          // We can guess day based on question content or just default first to Day 7
-          daysCovered.add(7);
-          updateProgressUI();
-        } else {
-          appendMessage("Error starting interview. Please refresh and try again.", 'interviewer');
-        }
-      } catch (err) {
-        removeLoader();
-        appendMessage(`Connection Error: ${err.message}`, 'interviewer');
-      }
-    });
-
-    // 3. Conversational Message Handling
-    async function submitAnswer() {
-      const text = chatInput.value.trim();
-      if (!text) return;
-      
-      // Append candidate message
-      appendMessage(text, 'candidate');
-      chatInput.value = '';
-      
-      appendLoader();
-      
-      try {
-        const res = await fetch(`${API_BASE}/api/interview`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: sessionId,
-            message: text
-          })
-        });
-        
-        removeLoader();
-        
-        if (res.ok) {
-          const data = await res.json();
-          
-          if (data.done) {
-            // End Interview and render Feedback Report
-            appendMessage("Interview completed. Loading detailed feedback...", 'interviewer');
-            setTimeout(() => renderFeedback(data.feedback), 1500);
-          } else {
-            // Keep going
-            appendMessage(data.reply, 'interviewer');
-            
-            questionCount += 1;
-            // Add a new day to coverage periodically to simulate progress visually
-            const daysMock = [8, 10, 12, 16, 22, 23, 28];
-            if (questionCount <= 8) {
-              daysCovered.add(daysMock[questionCount - 2] || 12);
-            }
-            updateProgressUI();
-          }
-        } else {
-          appendMessage("Error processing answer. Please resubmit.", 'interviewer');
-        }
-      } catch (err) {
-        removeLoader();
-        appendMessage(`Connection Error: ${err.message}`, 'interviewer');
-      }
-    }
-
-    sendBtn.addEventListener('click', submitAnswer);
-    chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') submitAnswer();
-    });
-
-    // 4. UI Rendering Utilities
-    function appendMessage(text, sender) {
-      const msgDiv = document.createElement('div');
-      msgDiv.classList.add('message', sender);
-      msgDiv.textContent = text;
-      chatMessages.appendChild(msgDiv);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function appendLoader() {
-      const loaderDiv = document.createElement('div');
-      loaderDiv.id = 'typing-loader-wrapper';
-      loaderDiv.classList.add('message', 'interviewer');
-      loaderDiv.innerHTML = `
-        <div class="typing-loader">
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-          <div class="typing-dot"></div>
-        </div>
-      `;
-      chatMessages.appendChild(loaderDiv);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function removeLoader() {
-      const loader = document.getElementById('typing-loader-wrapper');
-      if (loader) loader.remove();
-    }
-
-    function updateProgressUI() {
-      // Questions Progress
-      questionsCountLabel.textContent = `${questionCount} / 8`;
-      const qPercent = Math.min(100, (questionCount / 8) * 100);
-      questionsProgressBar.style.width = `${qPercent}%`;
-
-      // Days Progress
-      const uniqueDays = daysCovered.size;
-      daysCountLabel.textContent = `${uniqueDays} / 4`;
-      const dPercent = Math.min(100, (uniqueDays / 4) * 100);
-      daysProgressBar.style.width = `${dPercent}%`;
-
-      // Render Days Tags
-      daysTagsContainer.innerHTML = '';
-      daysCovered.forEach(day => {
-        const span = document.createElement('span');
-        span.classList.add('day-tag');
-        span.textContent = `Day ${day}`;
-        daysTagsContainer.appendChild(span);
-      });
-    }
-
-    function renderFeedback(feedback) {
-      chatMessages.classList.add('hidden');
-      inputArea.classList.add('hidden');
-      feedbackOverlay.classList.remove('hidden');
-      
-      document.getElementById('report-summary').textContent = feedback.summary || "No summary provided.";
-      
-      const strengthsUl = document.getElementById('report-strengths');
-      strengthsUl.innerHTML = '';
-      (feedback.strengths || []).forEach(str => {
-        const li = document.createElement('li');
-        li.textContent = str;
-        strengthsUl.appendChild(li);
-      });
-
-      const gapsUl = document.getElementById('report-gaps');
-      gapsUl.innerHTML = '';
-      (feedback.gaps || []).forEach(gap => {
-        const li = document.createElement('li');
-        li.textContent = gap;
-        gapsUl.appendChild(li);
-      });
-
-      const nextUl = document.getElementById('report-next');
-      nextUl.innerHTML = '';
-      (feedback.next || []).forEach(step => {
-        const li = document.createElement('li');
-        li.textContent = step;
-        nextUl.appendChild(li);
-      });
-      
-      // Unlock candidate selector to allow running a new session
-      candidateSelect.disabled = false;
-      sessionIdInput.disabled = false;
-    }
-
-    // Run Initialization
-    initApp();
-  </script>
+  <script src="./assets/js/interview.js"></script>
+  <script src="./assets/js/app.js"></script>
 </body>
+
 </html>
