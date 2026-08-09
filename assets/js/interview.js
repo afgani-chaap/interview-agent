@@ -214,11 +214,15 @@ const InterviewApp = (() => {
         daysCovered.add(7);
         updateProgressUI();
       } else {
-        appendMessage('Error starting interview. Please refresh and try again.', 'interviewer');
+        const errJson = await res.json().catch(() => ({}));
+        const detailMsg = errJson.detail || `Backend error (HTTP ${res.status})`;
+        appendErrorMessage(`Failed to start interview: ${detailMsg}`, () => startInterview());
+        startBtn.disabled = false;
       }
     } catch (err) {
       removeLoader();
-      appendMessage(`Connection Error: ${err.message}`, 'interviewer');
+      appendErrorMessage(`Connection Error: ${err.message}. Is the backend running on port 8000?`, () => startInterview());
+      startBtn.disabled = false;
     }
   }
 
@@ -255,12 +259,54 @@ const InterviewApp = (() => {
           updateProgressUI();
         }
       } else {
-        appendMessage('Error processing answer. Please resubmit.', 'interviewer');
+        const errJson = await res.json().catch(() => ({}));
+        const detailMsg = errJson.detail || `Backend error (HTTP ${res.status})`;
+        appendErrorMessage(`Error evaluating answer: ${detailMsg}`, () => {
+          chatInput.value = text;
+          submitAnswer();
+        });
       }
     } catch (err) {
       removeLoader();
-      appendMessage(`Connection Error: ${err.message}`, 'interviewer');
+      appendErrorMessage(`Connection Error: ${err.message}`, () => {
+        chatInput.value = text;
+        submitAnswer();
+      });
     }
+  }
+
+  function appendErrorMessage(text, retryFn) {
+    const msgDiv = document.createElement('div');
+    msgDiv.classList.add('message', 'interviewer', 'error-message');
+    msgDiv.style.borderLeft = '4px solid #ef4444';
+    msgDiv.style.background = 'rgba(239, 68, 68, 0.12)';
+    msgDiv.style.color = '#f87171';
+
+    const textSpan = document.createElement('span');
+    textSpan.textContent = `⚠️ ${text}`;
+    msgDiv.appendChild(textSpan);
+
+    if (retryFn) {
+      const retryBtn = document.createElement('button');
+      retryBtn.textContent = '🔄 Retry';
+      retryBtn.style.marginLeft = '0.75rem';
+      retryBtn.style.padding = '0.2rem 0.6rem';
+      retryBtn.style.background = '#ef4444';
+      retryBtn.style.color = '#ffffff';
+      retryBtn.style.border = 'none';
+      retryBtn.style.borderRadius = '4px';
+      retryBtn.style.cursor = 'pointer';
+      retryBtn.style.fontWeight = '700';
+      retryBtn.style.fontSize = '0.75rem';
+      retryBtn.addEventListener('click', () => {
+        msgDiv.remove();
+        retryFn();
+      });
+      msgDiv.appendChild(retryBtn);
+    }
+
+    chatMessages.appendChild(msgDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
   function appendMessage(text, sender) {

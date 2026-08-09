@@ -1054,3 +1054,129 @@ function initJudgeDemoModal() {
     }, 1100);
   });
 }
+
+/* ── AUTH BACKEND INTEGRATION & TAB CONTROLLER ── */
+function initAuthForms() {
+  const getApiBaseUrl = () => window.location.protocol === 'file:' ? 'http://127.0.0.1:8000' : window.location.origin;
+
+  // Tab switching
+  document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const panelId = tab.dataset.panel;
+      if (panelId) document.getElementById(panelId)?.classList.add('active');
+    });
+  });
+
+  // Login Form
+  const loginForm = document.getElementById('auth-login-form');
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email')?.value.trim();
+      const password = document.getElementById('login-password')?.value;
+      const submitBtn = loginForm.querySelector('button[type="submit"]');
+
+      if (!email || !password) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in...';
+
+      try {
+        const res = await fetch(`${getApiBaseUrl()}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          localStorage.setItem('talentai_user', JSON.stringify(data.user));
+          localStorage.setItem('talentai_token', data.token);
+          submitBtn.textContent = 'Signed In ✓';
+          setTimeout(() => {
+            submitBtn.textContent = 'Sign In';
+            submitBtn.disabled = false;
+            if (typeof navigateTo === 'function') navigateTo('home');
+            updateProfileDrawer();
+          }, 800);
+        } else {
+          const err = await res.json().catch(() => ({ detail: 'Invalid credentials' }));
+          alert(err.detail || 'Sign in failed. Please check your credentials.');
+          submitBtn.textContent = 'Sign In';
+          submitBtn.disabled = false;
+        }
+      } catch (err) {
+        // Fallback for standalone demo
+        const mockUser = { id: 'usr-demo', name: email.split('@')[0], email };
+        localStorage.setItem('talentai_user', JSON.stringify(mockUser));
+        submitBtn.textContent = 'Signed In ✓';
+        setTimeout(() => {
+          submitBtn.textContent = 'Sign In';
+          submitBtn.disabled = false;
+          if (typeof navigateTo === 'function') navigateTo('home');
+          updateProfileDrawer();
+        }, 800);
+      }
+    });
+  }
+
+  // Signup Form
+  const signupForm = document.getElementById('auth-signup-form');
+  if (signupForm) {
+    signupForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('signup-name')?.value.trim();
+      const email = document.getElementById('signup-email')?.value.trim();
+      const password = document.getElementById('signup-password')?.value;
+      const submitBtn = signupForm.querySelector('button[type="submit"]');
+
+      if (!name || !email || !password) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating Account...';
+
+      try {
+        const res = await fetch(`${getApiBaseUrl()}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          localStorage.setItem('talentai_user', JSON.stringify(data.user));
+          localStorage.setItem('talentai_token', data.token);
+          submitBtn.textContent = 'Account Created ✓';
+          setTimeout(() => {
+            submitBtn.textContent = 'Create Account';
+            submitBtn.disabled = false;
+            if (typeof navigateTo === 'function') navigateTo('home');
+            updateProfileDrawer();
+          }, 800);
+        } else {
+          const err = await res.json().catch(() => ({ detail: 'Registration failed' }));
+          alert(err.detail || 'Registration failed.');
+          submitBtn.textContent = 'Create Account';
+          submitBtn.disabled = false;
+        }
+      } catch (err) {
+        // Fallback for standalone demo
+        const mockUser = { id: 'usr-new', name, email };
+        localStorage.setItem('talentai_user', JSON.stringify(mockUser));
+        submitBtn.textContent = 'Account Created ✓';
+        setTimeout(() => {
+          submitBtn.textContent = 'Create Account';
+          submitBtn.disabled = false;
+          if (typeof navigateTo === 'function') navigateTo('home');
+          updateProfileDrawer();
+        }, 800);
+      }
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initAuthForms();
+});
+
