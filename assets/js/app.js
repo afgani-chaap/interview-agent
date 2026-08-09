@@ -394,12 +394,12 @@ function initCarousel() {
   carousel?.addEventListener('mousedown', dragStart);
   carousel?.addEventListener('mousemove', drag);
   carousel?.addEventListener('mouseup', dragEnd);
-  carousel?.addEventListener('mouseleave', () => { if(isDragging) dragEnd(); });
-  
+  carousel?.addEventListener('mouseleave', () => { if (isDragging) dragEnd(); });
+
   carousel?.addEventListener('touchstart', dragStart, { passive: true });
   carousel?.addEventListener('touchmove', drag, { passive: true });
   carousel?.addEventListener('touchend', dragEnd, { passive: true });
-  
+
   // Trackpad support
   carousel?.addEventListener('wheel', e => {
     if (Math.abs(e.deltaX) > 30) {
@@ -439,7 +439,7 @@ function initFields() {
   const grid = document.getElementById('fields-grid');
   if (!grid) return;
   const saved = sessionStorage.getItem('selectedField');
-  if (saved) try { TalentAI.selectedField = JSON.parse(saved); } catch (_) {}
+  if (saved) try { TalentAI.selectedField = JSON.parse(saved); } catch (_) { }
 
   grid.innerHTML = FIELDS.map(f => `
     <div class="field-card card-3d${TalentAI.selectedField?.id === f.id ? ' selected' : ''}"
@@ -533,6 +533,11 @@ function initSearch() {
   const dropdown = document.getElementById('search-dropdown');
   if (!input || !dropdown) return;
 
+  // Ensure search index is built (in case candidates not loaded yet)
+  if (!searchIndex.length) {
+    buildSearchIndex();
+  }
+
   input.addEventListener('input', () => {
     const q = input.value.trim().toLowerCase();
     if (q.length < 1) { dropdown.classList.add('hidden'); return; }
@@ -568,6 +573,8 @@ function initSearch() {
     if (!e.target.closest('.header-search')) dropdown.classList.add('hidden');
   });
 }
+
+
 
 function initCounters() {
   const bar = document.querySelector('.stats-bar');
@@ -651,15 +658,15 @@ function renderDashboard(candidates) {
         <table class="candidate-table">
           <thead><tr><th>Rank</th><th>Name</th><th>Role</th><th>Missions</th><th>First-Try Pass</th></tr></thead>
           <tbody>${candidates.slice(0, 5).map((c, i) => {
-            const m = c.member || {};
-            return `<tr>
+    const m = c.member || {};
+    return `<tr>
               <td><strong>#${i + 1}</strong></td>
               <td><strong>${m.name}</strong></td>
               <td>${m.jobRole}</td>
               <td>${c.signals?.missionsCompleted || 0}/31</td>
               <td><span class="status-pill">${c.signals?.missionsFirstTry || 0}</span></td>
             </tr>`;
-          }).join('')}</tbody>
+  }).join('')}</tbody>
         </table>
       </div>
       <div class="dash-card wide card-3d">
