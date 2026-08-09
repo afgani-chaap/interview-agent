@@ -496,16 +496,38 @@ body {
 }
 
 .placement-card .company-logo {
-  font-size: 1.75rem;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.04);
 }
 
-.placement-card .company-logo.google { color: #4285f4; }
-.placement-card .company-logo.amazon { color: #ff9900; }
-.placement-card .company-logo.microsoft { color: #0078d4; }
-.placement-card .company-logo.meta { color: #0668E1; }
+.placement-card .company-logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 6px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.placement-card .company-name-text {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.placement-card .company-logo.google .company-name-text { color: #4285f4; }
+.placement-card .company-logo.amazon .company-name-text { color: #ff9900; }
+.placement-card .company-logo.microsoft .company-name-text { color: #0078d4; }
+.placement-card .company-logo.meta .company-name-text { color: #0668E1; }
+.placement-card .company-logo.netflix .company-name-text { color: #E50914; }
+.placement-card .company-logo.apple .company-name-text { color: #555555; }
 
 .placement-card .role {
   font-size: 0.85rem;

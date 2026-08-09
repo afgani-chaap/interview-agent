@@ -16,12 +16,12 @@ window.TalentAI = {
 };
 
 const PLACEMENTS = [
-  { name: 'Priya Sharma', role: 'Staff ML Engineer', company: 'Google', companyClass: 'google', salary: '48 LPA', bg: 'linear-gradient(135deg,#dbeafe,#e0e7ff)', headline: 'Priya Sharma joins <em>Google</em> DeepMind', text: 'Completed our AI cohort with top RAG scores. TalentAI interview predicted 94% ML fit — she cleared Google\'s L5 loop in a single onsite.', tags: ['ML Systems', 'Top 1% Cohort'], score: 94 },
-  { name: 'Rahul Mehta', role: 'SDE-2', company: 'Amazon', companyClass: 'amazon', salary: '41 LPA', bg: 'linear-gradient(135deg,#ffedd5,#fef3c7)', headline: 'Rahul Mehta lands <em>Amazon</em> AWS', text: 'Backend track graduate with distributed systems focus. Adaptive interview surfaced MCP API design strengths matching Amazon\'s bar-raiser panel.', tags: ['Distributed Systems', 'AWS Track'], score: 91 },
-  { name: 'Ananya Reddy', role: 'Senior AI Engineer', company: 'Microsoft', companyClass: 'microsoft', salary: '46 LPA', bg: 'linear-gradient(135deg,#d1fae5,#ecfdf5)', headline: 'Ananya Reddy \u2192 <em>Microsoft</em> Copilot', text: 'Full-stack AI builder with LangChain and Azure expertise. Interview agent validated agentic workflow skills — offer within 72 hours of final round.', tags: ['Copilot Team', 'Agentic AI'], score: 96 },
-  { name: 'Vikram Patel', role: 'Product Manager, AI', company: 'Meta', companyClass: 'meta', salary: '39 LPA', bg: 'linear-gradient(135deg,#ede9fe,#f5f3ff)', headline: 'Vikram Patel pivots to <em>Meta</em> AI PM', text: 'Career switcher from finance. Curriculum-aware interviews tested prompt engineering and product sense — Meta extended PM offer for GenAI team.', tags: ['Career Pivot', 'GenAI PM'], score: 90 },
-  { name: 'Neha Gupta', role: 'Data Scientist', company: 'Netflix', companyClass: 'netflix', salary: '44 LPA', bg: 'linear-gradient(135deg,#fee2e2,#fecaca)', headline: 'Neha Gupta joins <em>Netflix</em> Personalization', text: 'Aced the system design round focusing on real-time recommendations. Our Mock Interview Simulator perfectly predicted her interview flow.', tags: ['RecSys', 'Data Track'], score: 93 },
-  { name: 'Karan Singh', role: 'Senior Frontend Engineer', company: 'Apple', companyClass: 'apple', salary: '42 LPA', bg: 'linear-gradient(135deg,#f3f4f6,#e5e7eb)', headline: 'Karan Singh lands <em>Apple</em> UI Team', text: 'Specialized in micro-animations and WebGL. The ATS Grader helped him bypass screening, and he cleared Apple\'s rigorous UI architecture rounds.', tags: ['UI Architect', 'Frontend Track'], score: 95 }
+  { name: 'Priya Sharma', role: 'Staff ML Engineer', company: 'Google', companyClass: 'google', domain: 'google.com', salary: '48 LPA', bg: 'linear-gradient(135deg,#dbeafe,#e0e7ff)', headline: 'Priya Sharma joins <em>Google</em> DeepMind', text: 'Completed our AI cohort with top RAG scores. TalentAI interview predicted 94% ML fit — she cleared Google\'s L5 loop in a single onsite.', tags: ['ML Systems', 'Top 1% Cohort'], score: 94 },
+  { name: 'Rahul Mehta', role: 'SDE-2', company: 'Amazon', companyClass: 'amazon', domain: 'amazon.com', salary: '41 LPA', bg: 'linear-gradient(135deg,#ffedd5,#fef3c7)', headline: 'Rahul Mehta lands <em>Amazon</em> AWS', text: 'Backend track graduate with distributed systems focus. Adaptive interview surfaced MCP API design strengths matching Amazon\'s bar-raiser panel.', tags: ['Distributed Systems', 'AWS Track'], score: 91 },
+  { name: 'Ananya Reddy', role: 'Senior AI Engineer', company: 'Microsoft', companyClass: 'microsoft', domain: 'microsoft.com', salary: '46 LPA', bg: 'linear-gradient(135deg,#d1fae5,#ecfdf5)', headline: 'Ananya Reddy \u2192 <em>Microsoft</em> Copilot', text: 'Full-stack AI builder with LangChain and Azure expertise. Interview agent validated agentic workflow skills — offer within 72 hours of final round.', tags: ['Copilot Team', 'Agentic AI'], score: 96 },
+  { name: 'Vikram Patel', role: 'Product Manager, AI', company: 'Meta', companyClass: 'meta', domain: 'meta.com', salary: '39 LPA', bg: 'linear-gradient(135deg,#ede9fe,#f5f3ff)', headline: 'Vikram Patel pivots to <em>Meta</em> AI PM', text: 'Career switcher from finance. Curriculum-aware interviews tested prompt engineering and product sense — Meta extended PM offer for GenAI team.', tags: ['Career Pivot', 'GenAI PM'], score: 90 },
+  { name: 'Neha Gupta', role: 'Data Scientist', company: 'Netflix', companyClass: 'netflix', domain: 'netflix.com', salary: '44 LPA', bg: 'linear-gradient(135deg,#fee2e2,#fecaca)', headline: 'Neha Gupta joins <em>Netflix</em> Personalization', text: 'Aced the system design round focusing on real-time recommendations. Our Mock Interview Simulator perfectly predicted her interview flow.', tags: ['RecSys', 'Data Track'], score: 93 },
+  { name: 'Karan Singh', role: 'Senior Frontend Engineer', company: 'Apple', companyClass: 'apple', domain: 'apple.com', salary: '42 LPA', bg: 'linear-gradient(135deg,#f3f4f6,#e5e7eb)', headline: 'Karan Singh lands <em>Apple</em> UI Team', text: 'Specialized in micro-animations and WebGL. The ATS Grader helped him bypass screening, and he cleared Apple\'s rigorous UI architecture rounds.', tags: ['UI Architect', 'Frontend Track'], score: 95 }
 ];
 
 const FIELDS = [
@@ -284,7 +284,10 @@ function initCarousel() {
     '</div>',
     '<div class="slide-visual">',
     '<div class="placement-card float-3d">',
-    '<div class="company-logo ' + p.companyClass + '">' + p.company + '</div>',
+    '<div class="company-logo ' + p.companyClass + '">',
+    '<img src="https://cdn.brandfetch.io/' + p.domain + '/w/400/h/400" alt="' + p.company + '" class="company-logo-img" loading="lazy">',
+    '<span class="company-name-text">' + p.company + '</span>',
+    '</div>',
     '<div class="role">' + p.name + '</div>',
     '<div class="role">' + p.role + '</div>',
     '<div class="salary">\u20B9' + p.salary + '</div>',
