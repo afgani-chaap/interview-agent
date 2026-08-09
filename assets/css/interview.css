@@ -85,8 +85,8 @@
 .custom-select-trigger {
   width: 100%;
   padding: 0.72rem 2.5rem 0.72rem 0.9rem;
-  background: white;
-  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: 0.875rem;
@@ -138,8 +138,9 @@
   left: 0;
   right: 0;
   z-index: 60;
-  background: white;
-  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-lg);
   max-height: 0;
@@ -161,33 +162,35 @@
 .custom-select-option {
   padding: 0.65rem 0.9rem;
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   cursor: pointer;
   transition: background var(--transition);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .custom-select-option:last-child { border-bottom: none; }
 
 .custom-select-option:hover,
 .custom-select-option.highlighted {
-  background: var(--primary-light);
-  color: var(--primary-dark);
+  background: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
 }
 
 .custom-select-option.selected {
-  background: var(--primary-light);
-  color: var(--primary);
+  background: rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
   font-weight: 700;
 }
 
 #session-id-input {
   width: 100%;
   padding: 0.72rem 0.9rem;
-  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: 0.875rem;
+  color: var(--text-primary);
   outline: none;
   transition: border-color var(--transition), box-shadow var(--transition);
 }
@@ -400,17 +403,19 @@
 
 .message.interviewer {
   align-self: flex-start;
-  background: white;
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--primary);
-  box-shadow: var(--shadow-xs);
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 4px solid var(--primary);
+  color: #f8fafc;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
 .message.candidate {
   align-self: flex-end;
-  background: var(--primary-light);
-  border: 1px solid rgba(37, 99, 235, 0.2);
-  color: var(--text-primary);
+  background: rgba(14, 165, 233, 0.22);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #f8fafc;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
 .typing-loader { display: flex; gap: 0.3rem; }
@@ -443,11 +448,17 @@
 #chat-input {
   flex: 1;
   padding: 0.72rem 1rem;
-  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: 0.875rem;
+  color: #f8fafc;
   outline: none;
+}
+
+#chat-input::placeholder {
+  color: var(--text-muted);
 }
 
 #chat-input:focus {
@@ -501,12 +512,12 @@
 
 .welcome-feature {
   padding: 0.35rem 0.75rem;
-  background: white;
-  border: 1px solid var(--border);
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
   font-size: 0.72rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }
 
 .feedback-overlay {
@@ -532,12 +543,13 @@
 .feedback-header p { font-size: 0.85rem; color: var(--text-secondary); }
 
 .feedback-summary {
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   padding: 1.25rem;
   font-size: 0.875rem;
   line-height: 1.7;
+  color: var(--text-primary);
 }
 
 .feedback-grid {
@@ -554,10 +566,11 @@
 }
 
 .feedback-section {
-  background: white;
-  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-md);
   padding: 1.15rem;
+  color: var(--text-primary);
 }
 
 .feedback-section h3 {

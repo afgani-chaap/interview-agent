@@ -57,30 +57,6 @@ class InterviewResponse(BaseModel):
     done: bool
     feedback: Optional[Dict[str, Any]] = None
 
-# In-Memory Users DB for Authentication
-users_db: Dict[str, Dict[str, Any]] = {
-    "demo@talentai.com": {
-        "id": "usr-demo",
-        "name": "Demo Candidate",
-        "email": "demo@talentai.com",
-        "password": "password123"
-    }
-}
-
-class RegisterRequest(BaseModel):
-    name: str
-    email: str
-    password: str
-
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
-class AuthResponse(BaseModel):
-    status: str
-    user: Dict[str, Any]
-    token: str
-
 @app.get("/")
 def read_root():
     if os.path.exists("index.html"):
@@ -95,45 +71,6 @@ def read_root():
 @app.get("/api/candidates")
 def get_candidates():
     return llm_client.CANDIDATES
-
-@app.post("/api/auth/register", response_model=AuthResponse)
-def register_user(req: RegisterRequest):
-    email_clean = req.email.strip().lower()
-    if email_clean in users_db:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Account with this email already exists."
-        )
-    user_id = f"usr-{len(users_db) + 1}"
-    user_data = {
-        "id": user_id,
-        "name": req.name.strip(),
-        "email": email_clean,
-        "password": req.password
-    }
-    users_db[email_clean] = user_data
-    logger.info(f"New user registered: {req.name} ({email_clean})")
-    return AuthResponse(
-        status="success",
-        user={"id": user_id, "name": user_data["name"], "email": email_clean},
-        token=f"jwt-token-{user_id}"
-    )
-
-@app.post("/api/auth/login", response_model=AuthResponse)
-def login_user(req: LoginRequest):
-    email_clean = req.email.strip().lower()
-    user = users_db.get(email_clean)
-    if not user or user["password"] != req.password:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password. Please try again."
-        )
-    logger.info(f"User logged in: {user['name']} ({email_clean})")
-    return AuthResponse(
-        status="success",
-        user={"id": user["id"], "name": user["name"], "email": user["email"]},
-        token=f"jwt-token-{user['id']}"
-    )
 
 @app.post("/api/interview", response_model=InterviewResponse)
 def handle_interview_turn(request: InterviewRequest):
